@@ -170,7 +170,7 @@ curl -s -X POST http://localhost:8080/api/orders \
 
 ---
 
-## ⚠️ Частые грабли
+## Частые проблемы
 
 - **conversion-VM — только `ubuntu-20.04`** (24.04 kernel panic, 22.04 ломает virt-v2v).
 - **VMDisk `storage` > размера каталожного образа** (иначе clone fail; удаление зависает в Terminating). Для ubuntu-20.04 бери 25Gi.
