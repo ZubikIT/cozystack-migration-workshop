@@ -1,7 +1,7 @@
 apiVersion: apps.cozystack.io/v1alpha1
 kind: VMDisk
 metadata:
-  name: app
+  name: app-1
   namespace: tenant-pXX
 spec:
   source:
@@ -13,16 +13,14 @@ spec:
 apiVersion: apps.cozystack.io/v1alpha1
 kind: VMInstance
 metadata:
-  name: app
+  name: app-1
   namespace: tenant-pXX
 spec:
   instanceType: u1.medium
   instanceProfile: centos.7
   runStrategy: Always
   disks:
-    - name: app
-  external: true
-  externalMethod: PortList
-  externalPorts:
-    - 22
-    - 8080
+    - name: app-1
+# Доступ к приложению снаружи — через `virtctl port-forward` (см. README).
+# external LoadBalancer на этом стенде (Cilium + robotlb) для VM не работает,
+# поэтому external здесь НЕ включаем.
