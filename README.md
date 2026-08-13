@@ -27,6 +27,77 @@
 
 ---
 
+## 🛠 Подготовка: инструменты на своей машине
+
+Нужны три CLI:
+
+```bash
+# 1. kubectl — https://kubernetes.io/docs/tasks/tools/
+#    macOS:
+brew install kubectl
+
+# 2. virtctl — доступ к VM (console / ssh / port-forward). Версия под кластер.
+#    macOS:
+brew install virtctl
+#    либо бинарём с релизов KubeVirt:
+#    curl -L -o virtctl https://github.com/kubevirt/kubevirt/releases/latest/download/virtctl-<ver>-darwin-amd64
+#    chmod +x virtctl && sudo mv virtctl /usr/local/bin/
+
+# 3. kubelogin (oidc-login) — kubeconfig ходит в кластер через Keycloak
+#    macOS:
+brew install int128/kubelogin/kubelogin
+#    либо через krew:
+#    kubectl krew install oidc-login
+```
+
+**kubeconfig:** скопируй содержимое секрета `kubeconfig-tenant-pXX` (дашборд →
+Info → Secrets) в файл и укажи его:
+```bash
+# ВНИМАНИЕ: KUBECONFIG должен указывать на ТОТ ЖЕ файл, куда вставил kubeconfig
+export KUBECONFIG=~/.kube/workshop-pXX
+kubectl config current-context          # tenant-pXX
+kubectl get vminstance -n tenant-pXX    # проверка доступа
+```
+При первом `kubectl` откроется браузер на Keycloak — залогинься `pXX` / *(пароль)*.
+
+> `kubectl get vmi`/`vm` под тенантом **не сработают** (kubevirt.io напрямую запрещён) —
+> смотри высокоуровневый **`vminstance`** (apps.cozystack.io).
+
+---
+
+## 📁 Как работать с этой репой
+
+```bash
+git clone git@github.com:aenix-org/cozystack-migration-workshop.git
+cd cozystack-migration-workshop
+```
+
+Два типа файлов — применяются **по-разному**:
+
+- **`manifests/*.yaml`** — применяются **с твоей машины** через `kubectl`.
+  Перед применением открой файл и:
+  - замени `tenant-pXX` на свой namespace (во всех файлах);
+  - в `03-app-vm.yaml` вставь presigned-URL (его печатает `convert.sh`).
+  ```bash
+  kubectl apply -f manifests/01-bucket.yaml
+  ```
+
+- **`scripts/*.sh`** — запускаются **ВНУТРИ VM** (не на твоей машине).
+  Открой скрипт локально, впиши свои значения (креды бакета / имена сервисов),
+  затем перенеси в VM одним из способов:
+  - зайди в VM (`virtctl console` / `virtctl ssh`) и вставь содержимое в редактор
+    (`nano convert.sh`, вставь, сохрани), либо
+  - скопируй командой (заранее подставив значения) прямо в консоль.
+  ```bash
+  # внутри VM:
+  bash convert.sh
+  ```
+
+> Скрипты с плейсхолдерами `ВСТАВЬТЕ_*` — обязательно замени их на свои значения
+> из дашборда (Bucket → Secrets), иначе не сработает.
+
+---
+
 ## Фазы (манифесты + команды)
 
 ### Фаза 1 — свой S3-бакет
