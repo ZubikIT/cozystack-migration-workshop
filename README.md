@@ -29,26 +29,57 @@
 
 ## 🛠 Подготовка: инструменты на своей машине
 
-Нужны три CLI:
+Нужны три CLI — работают на **Linux, macOS и Windows**. Ниже официальные ссылки
+и команды по ОС.
+
+### 1. kubectl
+
+Официальная инструкция (все ОС): https://kubernetes.io/docs/tasks/tools/
 
 ```bash
-# 1. kubectl — https://kubernetes.io/docs/tasks/tools/
-#    macOS:
+# Linux
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+# macOS
 brew install kubectl
 
-# 2. virtctl — доступ к VM (console / ssh / port-forward). Версия под кластер.
-#    macOS:
-brew install virtctl
-#    либо бинарём с релизов KubeVirt:
-#    curl -L -o virtctl https://github.com/kubevirt/kubevirt/releases/latest/download/virtctl-<ver>-darwin-amd64
-#    chmod +x virtctl && sudo mv virtctl /usr/local/bin/
-
-# 3. kubelogin (oidc-login) — kubeconfig ходит в кластер через Keycloak
-#    macOS:
-brew install int128/kubelogin/kubelogin
-#    либо через krew:
-#    kubectl krew install oidc-login
+# Windows (PowerShell)
+winget install -e --id Kubernetes.kubectl     # или choco install kubernetes-cli
 ```
+
+### 2. krew — менеджер плагинов kubectl (упрощает установку virtctl и kubelogin)
+
+Инструкция (Linux/macOS/Windows): https://krew.sigs.k8s.io/docs/user-guide/setup/install/
+После установки добавь `$HOME/.krew/bin` в `PATH`.
+
+### 3. virtctl — доступ к VM (console / ssh / port-forward)
+
+```bash
+# проще всего через krew (любая ОС):
+kubectl krew install virt
+# использование: kubectl virt console ...  (или virtctl, если ставил бинарь)
+```
+Либо готовый бинарь под свою ОС с релизов KubeVirt (Linux/macOS/Windows):
+https://github.com/kubevirt/kubevirt/releases — файлы `virtctl-<ver>-<os>-amd64`.
+На Windows — `virtctl-<ver>-windows-amd64.exe`.
+
+### 4. kubelogin (oidc-login) — kubeconfig ходит в кластер через Keycloak
+
+```bash
+# проще всего через krew (любая ОС):
+kubectl krew install oidc-login
+```
+Либо бинарь с релизов (Linux/macOS/Windows):
+https://github.com/int128/kubelogin/releases
+```bash
+# macOS (brew):  brew install int128/kubelogin/kubelogin
+# Windows:       choco install kubelogin   (или winget install kubelogin)
+```
+
+> Если ставил через krew — команды это `kubectl virt ...` и `kubectl oidc-login ...`.
+> Если ставил бинари — `virtctl ...`; kubeconfig в exec-секции уже вызывает
+> `kubectl oidc-login`, так что плагин krew подходит в обоих случаях.
 
 **kubeconfig:** скопируй содержимое секрета `kubeconfig-tenant-pXX` (дашборд →
 Info → Secrets) в файл и укажи его:
