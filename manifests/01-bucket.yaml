@@ -1,0 +1,8 @@
+apiVersion: apps.cozystack.io/v1alpha1
+kind: Bucket
+metadata:
+  name: my-images
+  namespace: tenant-pXX
+spec:
+  users:
+    app: {}
