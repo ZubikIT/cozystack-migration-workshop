@@ -230,7 +230,7 @@ alias virtctl="kubectl virt"
 
 1. Откройте дашборд: **https://dashboard.workshop.aenix.io**
 2. Логин — `pXX`, пароль скажу голосом.
-3. В дашборде: **Info → вкладка Secrets → `kubeconfig-tenant-pXX`**. Нажмите *Reveal*,
+3. В дашборде: **Info → вкладка Secrets → `kubeconfig-tenant-workshopXX`**. Нажмите *Reveal*,
    скопируйте содержимое.
 4. Сохраните в файл и укажите на него переменную:
 
@@ -249,7 +249,7 @@ $env:KUBECONFIG = "$HOME\.kube\workshop-pXX"
 
 **Проверяем:**
 ```
-kubectl get vminstance -n tenant-pXX
+kubectl get vminstance -n tenant-workshopXX
 ```
 Откроется браузер — залогиньтесь как `pXX`. После этого команда должна ответить
 `No resources found`. Это правильный ответ: машин пока нет, но кластер вас узнал.
@@ -360,29 +360,29 @@ cd ~/cozystack-migration-workshop
 ⚠️ Не открывайте `.yaml` в Word или Google Docs: они подменяют кавычки и дефисы,
 после этого файл перестаёт применяться, а ошибка выглядит необъяснимо.
 
-Во всех файлах стоит заглушка `tenant-pXX`. Подставьте свой номер сразу и во всё,
+Во всех файлах стоит заглушка `tenant-workshopXX`. Подставьте свой номер сразу и во всё,
 иначе манифест уедет не туда. Допустим, ваш логин `p03`:
 
 **Linux**
 ```bash
-find manifests scripts -type f -exec sed -i 's/tenant-pXX/tenant-p03/g' {} +
+find manifests scripts -type f -exec sed -i 's/tenant-workshopXX/tenant-workshop03/g' {} +
 ```
 
 **macOS** (здесь у `sed` другой синтаксис — обратите внимание на пустые кавычки)
 ```bash
-find manifests scripts -type f -exec sed -i '' 's/tenant-pXX/tenant-p03/g' {} +
+find manifests scripts -type f -exec sed -i '' 's/tenant-workshopXX/tenant-workshop03/g' {} +
 ```
 
 **Windows** (PowerShell)
 ```powershell
 Get-ChildItem -Recurse manifests,scripts -File | ForEach-Object {
-  (Get-Content $_.FullName) -replace 'tenant-pXX','tenant-p03' | Set-Content $_.FullName
+  (Get-Content $_.FullName) -replace 'tenant-workshopXX','tenant-workshop03' | Set-Content $_.FullName
 }
 ```
 
 **Проверяем, что не осталось ни одной заглушки:**
 ```bash
-grep -rn tenant-pXX manifests scripts || echo "чисто, можно продолжать"
+grep -rn tenant-workshopXX manifests scripts || echo "чисто, можно продолжать"
 ```
 
 Одно место команда не тронет: в `manifests/03-app-vm.yaml` строка
@@ -430,7 +430,7 @@ curl -fsSLO https://raw.githubusercontent.com/aenix-org/cozystack-migration-work
 но подробно и с комментариями: удобно перечитать потом, когда будете повторять
 у себя.
 
-⚠️ **Тонкость, из-за которой всё ломается.** Замену `tenant-pXX` на свой номер вы делали
+⚠️ **Тонкость, из-за которой всё ломается.** Замену `tenant-workshopXX` на свой номер вы делали
 на ноутбуке. Файл, скачанный внутри машины-конвертера, приходит свежий, с заглушками —
 значения в него вписываются заново, руками.
 
@@ -447,7 +447,7 @@ curl -fsSLO https://raw.githubusercontent.com/aenix-org/cozystack-migration-work
 
 ```bash
 kubectl apply -f manifests/01-bucket.yaml
-kubectl get bucket -n tenant-pXX
+kubectl get bucket -n tenant-workshopXX
 ```
 
 Дождитесь, пока бакет перейдёт в рабочее состояние.
@@ -509,13 +509,13 @@ SECRET_KEY="ВСТАВЬТЕ_secretKey"
 
 ```bash
 kubectl apply -f manifests/02-conversion-vm.yaml
-kubectl get vminstance -n tenant-pXX -w
+kubectl get vminstance -n tenant-workshopXX -w
 ```
 
 Ждём состояния `Running` (нажмите Ctrl+C, чтобы выйти из слежения). Заходим внутрь:
 
 ```bash
-virtctl ssh --namespace=tenant-pXX ubuntu@vm-instance-convert
+virtctl ssh --namespace=tenant-workshopXX ubuntu@vmi/vm-instance-convert
 ```
 Логин и пароль — `ubuntu` / `ubuntu`.
 
@@ -532,7 +532,8 @@ virtctl ssh --namespace=tenant-pXX ubuntu@vm-instance-convert
 ⚠️ И сразу про имена, иначе будете путаться. Объект в дашборде называется `convert`,
 а машина, которую он поднимает, внутри кластера зовётся **`vm-instance-convert`** —
 с приставкой. Поэтому в дашборде вы ищете `convert`, а в командах `virtctl` пишете
-`vm-instance-convert`.
+цель как **`vmi/vm-instance-convert`** (про префикс `vmi/` — ниже, в разделе про
+проброс порта; под tenant-доступом без него команда вернёт `forbidden`).
 
 🖱 **Через дашборд:** создаёте те же два объекта руками, по очереди.
 **1)** **VM Disk → Deploy new**: имя `convert-tools`, source = **image**, образ
@@ -629,7 +630,7 @@ sudo bash convert.sh
 
 ```bash
 kubectl apply -f manifests/03-app-vm.yaml
-kubectl get vminstance -n tenant-pXX -w
+kubectl get vminstance -n tenant-workshopXX -w
 ```
 
 Сначала кластер скачает образ по ссылке и разложит его по репликам — это займёт минуту-другую.
@@ -637,7 +638,7 @@ kubectl get vminstance -n tenant-pXX -w
 
 Заходим внутрь:
 ```bash
-virtctl console --namespace=tenant-pXX vm-instance-app-1
+virtctl console --namespace=tenant-workshopXX vmi/vm-instance-app-1
 ```
 Логин и пароль — `root` / `cozydemo`. Выйти из консоли: `Ctrl+]`.
 
@@ -648,7 +649,7 @@ virtctl console --namespace=tenant-pXX vm-instance-app-1
 • **VM Instance** `app-1` — профиль `centos.7`, instance type `u1.medium`
 
 Имена совпадают, и это нормально: диск и машина — разные типы объектов. В командах
-`virtctl` машина, как и в прошлый раз, зовётся с приставкой: **`vm-instance-app-1`**.
+`virtctl` цель, как и в прошлый раз, пишется с префиксом: **`vmi/vm-instance-app-1`**.
 
 🖱 **Через дашборд:** **1)** **VM Disk → Deploy new**: имя `app-1`, source = **http**,
 в поле URL — presigned-ссылка, размер `10Gi`, storage class `replicated`.
@@ -673,7 +674,7 @@ profile `centos.7`, диск — `app-1`. Консоль — кнопка **VNC*
 
 ```bash
 kubectl apply -f manifests/04-managed.yaml
-kubectl get postgres,kafka -n tenant-pXX
+kubectl get postgres,kafka -n tenant-workshopXX
 ```
 
 Поднимаются они не мгновенно — пока ждёте, посмотрите в дашборде, что именно создалось.
@@ -690,8 +691,8 @@ kubectl get postgres,kafka -n tenant-pXX
 **Записывать ничего не надо, но вот адреса — они пригодятся на шаге 7.** Изнутри
 кластера база и очередь доступны по именам:
 
-• Postgres — `postgres-db-rw.tenant-pXX.svc.cozy.local:5432`
-• Kafka — `kafka-kafka-kafka-bootstrap.tenant-pXX.svc.cozy.local:9092`
+• Postgres — `postgres-db-rw.tenant-workshopXX.svc.cozy.local:5432`
+• Kafka — `kafka-kafka-kafka-bootstrap.tenant-workshopXX.svc.cozy.local:9092`
 
 Именно эти две строки через два шага заменят собой прибитые адреса `192.168.10.30`
 и `192.168.10.40` в конфиге приложения. Я пришлю их готовыми командами, свой номер
@@ -718,7 +719,7 @@ kubectl get postgres,kafka -n tenant-pXX
 
 Зайдите в машину через консоль — с ноутбука:
 ```bash
-virtctl console --namespace=tenant-pXX vm-instance-app-1
+virtctl console --namespace=tenant-workshopXX vmi/vm-instance-app-1
 ```
 🖱 **Или мышкой:** в дашборде откройте свою машину и нажмите **VNC** — это та же
 консоль, только в браузере. Оба пути идут через API кластера и работают даже сейчас,
@@ -770,8 +771,8 @@ cat /etc/orders/application.properties
 
 Замените их на имена сервисов (подставьте свой номер вместо `pXX`):
 ```bash
-sed -i 's|192.168.10.30|postgres-db-rw.tenant-pXX.svc.cozy.local|g' /etc/orders/application.properties
-sed -i 's|192.168.10.40|kafka-kafka-kafka-bootstrap.tenant-pXX.svc.cozy.local|g' /etc/orders/application.properties
+sed -i 's|192.168.10.30|postgres-db-rw.tenant-workshopXX.svc.cozy.local|g' /etc/orders/application.properties
+sed -i 's|192.168.10.40|kafka-kafka-kafka-bootstrap.tenant-workshopXX.svc.cozy.local|g' /etc/orders/application.properties
 systemctl restart orders-api
 ```
 (двумя командами, а не одной с переносом: перенос строки при копировании из чата
@@ -839,10 +840,14 @@ PGPASSWORD='Orders2019!' psql -h postgres-db-rw -U orders -d orders \
 
 Пробрасываем порт приложения к себе:
 ```bash
-virtctl port-forward --namespace=tenant-pXX vmi/vm-instance-app-1 8088:8080
+virtctl port-forward --namespace=tenant-workshopXX vmi/vm-instance-app-1 8088:8080
 ```
-Обратите внимание на приставку `vmi/` — здесь она обязательна, в отличие от `console`
-и `ssh`. Без неё virtctl отвечает `target must contain type and name separated by '/'`.
+Обратите внимание на приставку `vmi/`. Пишите её **во всех** командах `virtctl` —
+и в `console`, и в `ssh`, и в `port-forward`. Причина двойная: под tenant-доступом
+права выданы на subresource `virtualmachineinstances` (vmi), а не на
+`virtualmachines` (vm), поэтому голое имя бьёт в vm-объект и возвращает
+`forbidden`. А для `port-forward` это ещё и синтаксис: без `vmi/` virtctl отвечает
+`target must contain type and name separated by '/'`.
 Окно с этой командой не закрывайте, туннель живёт, пока она работает.
 
 Если virtctl ругается на разницу версий клиента и кластера — это предупреждение,
@@ -850,8 +855,8 @@ virtctl port-forward --namespace=tenant-pXX vmi/vm-instance-app-1 8088:8080
 
 Если проброс всё равно не поднимается, тот же туннель делается через под машины:
 ```bash
-kubectl get pod -n tenant-pXX -l vm.kubevirt.io/name=vm-instance-app-1
-kubectl port-forward -n tenant-pXX <имя-пода-из-вывода> 8088:8080
+kubectl get pod -n tenant-workshopXX -l vm.kubevirt.io/name=vm-instance-app-1
+kubectl port-forward -n tenant-workshopXX <имя-пода-из-вывода> 8088:8080
 ```
 
 В другом окне терминала:
@@ -885,7 +890,11 @@ curl -s http://localhost:8088/api/orders
   ```
 
 • **`kubectl` отвечает «forbidden».** Проверьте, что обращаетесь к своему пространству:
-  `-n tenant-pXX`. И помните, что доступен `vminstance`, а не `vm` или `vmi`.
+  `-n tenant-workshopXX`. Для `kubectl` пользуйтесь `vminstance` (это ваш
+  cozystack-объект); `kubectl get vmi` под tenant-доступом закрыт. При этом в
+  командах `virtctl` цель всё равно пишется как `vmi/...` — там работает
+  subresource (console/ssh/port-forward), который вам выдан, а голое имя уходит в
+  `vm`-объект и вернёт `forbidden`.
 
 • **Заказ не создаётся, а здоровье при этом `200`.** Не создана таблица — вернитесь
   к сообщению про схему базы.

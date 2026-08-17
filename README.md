@@ -19,9 +19,9 @@ pod-NIC и переписать конфиг на managed-адреса. Посл
 
 * дашборд https://dashboard.workshop.aenix.io
 * логин `pXX`, пароль скажут на месте
-* kubeconfig берётся в дашборде: Info, вкладка Secrets, секрет `kubeconfig-tenant-pXX`
+* kubeconfig берётся в дашборде: Info, вкладка Secrets, секрет `kubeconfig-tenant-workshopXX`
 
-Дальше везде `tenant-pXX` меняйте на свой namespace.
+Дальше везде `tenant-workshopXX` меняйте на свой namespace.
 
 ## Инструменты
 
@@ -53,7 +53,7 @@ kubelogin нужен, потому что kubeconfig ходит в класте�
 ```bash
 export KUBECONFIG=~/.kube/workshop-pXX
 kubectl config current-context
-kubectl get vminstance -n tenant-pXX
+kubectl get vminstance -n tenant-workshopXX
 ```
 
 Кстати, `kubectl get vmi` или `vm` под тенантом не сработают, `kubevirt.io`
@@ -69,21 +69,21 @@ cd cozystack-migration-workshop
 ```
 
 Дальше важный момент. Во всех файлах вместо вашего namespace стоит заглушка
-`tenant-pXX`. Если применить манифест как есть, он уедет не туда или вернёт
+`tenant-workshopXX`. Если применить манифест как есть, он уедет не туда или вернёт
 ошибку. Поэтому первым делом подставьте свой номер во все файлы разом. Допустим,
 ваш логин `p03`, тогда:
 
 ```bash
 # Linux
-find manifests scripts -type f -exec sed -i 's/tenant-pXX/tenant-p03/g' {} +
+find manifests scripts -type f -exec sed -i 's/tenant-workshopXX/tenant-workshop03/g' {} +
 # macOS (там sed чуть другой)
-find manifests scripts -type f -exec sed -i '' 's/tenant-pXX/tenant-p03/g' {} +
+find manifests scripts -type f -exec sed -i '' 's/tenant-workshopXX/tenant-workshop03/g' {} +
 ```
 
-Проверьте, что подставилось (не должно остаться ни одного `tenant-pXX`):
+Проверьте, что подставилось (не должно остаться ни одного `tenant-workshopXX`):
 
 ```bash
-grep -rn tenant-pXX manifests scripts || echo "чисто, можно продолжать"
+grep -rn tenant-workshopXX manifests scripts || echo "чисто, можно продолжать"
 ```
 
 Одну вещь эта команда не тронет: в `manifests/03-app-vm.yaml` есть строка
@@ -119,7 +119,7 @@ kubectl apply -f manifests/01-bucket.yaml
 kubectl apply -f manifests/02-conversion-vm.yaml
 ```
 
-Дождитесь Running, зайдите внутрь (`virtctl ssh ubuntu@vm-instance-convert`,
+Дождитесь Running, зайдите внутрь (`virtctl ssh ubuntu@vmi/vm-instance-convert`,
 пароль `ubuntu`), впишите креды в `convert.sh` и запустите. virt-v2v сконвертит
 OVA в qcow2 и зальёт в ваш бакет, а в конце напечатает presigned-ссылку.
 
@@ -138,7 +138,7 @@ kubectl apply -f manifests/03-app-vm.yaml
 kubectl apply -f manifests/04-managed.yaml
 ```
 
-Фаза 5, подключение. Зайдите в app-VM (`virtctl console vm-instance-app-1`) и по
+Фаза 5, подключение. Зайдите в app-VM (`virtctl console vmi/vm-instance-app-1`) и по
 порядку: сперва `netfix-dhcp.sh` переключает eth0 на DHCP (после этого VM надо
 перезапустить), потом `connect-managed.sh` переписывает конфиг на managed-адреса,
 потом накатываете `orders-schema.sql` в Postgres. Порядок важен: пока сеть на
@@ -146,15 +146,22 @@ kubectl apply -f manifests/04-managed.yaml
 
 ## Шпаргалка
 
+> Во всех командах `virtctl` цель указывайте с префиксом `vmi/`
+> (`vmi/vm-instance-app-1`), а не голым именем. Под tenant-доступом права выданы на
+> subresource `virtualmachineinstances` (vmi), а не на `virtualmachines` (vm) —
+> голое имя бьёт в vm-объект и вернёт `forbidden`. Для `port-forward` это ещё и
+> синтаксис: без `vmi/` virtctl отвечает `target must contain type and name
+> separated by '/'`.
+
 ```bash
 # зайти в app-VM (root/cozydemo)
-virtctl console --namespace=tenant-pXX vm-instance-app-1
+virtctl console --namespace=tenant-workshopXX vmi/vm-instance-app-1
 
 # зайти в conversion-VM (ubuntu/ubuntu)
-virtctl ssh --namespace=tenant-pXX ubuntu@vm-instance-convert
+virtctl ssh --namespace=tenant-workshopXX ubuntu@vmi/vm-instance-convert
 
 # пробросить приложение на localhost
-virtctl port-forward --namespace=tenant-pXX vmi/vm-instance-app-1 8088:8080
+virtctl port-forward --namespace=tenant-workshopXX vmi/vm-instance-app-1 8088:8080
 
 # health, 200 значит Postgres и Kafka на месте
 curl -s http://localhost:8088/actuator/health
