@@ -204,14 +204,24 @@ source ~/.zshrc    # или source ~/.bashrc
 ```
 
 **Windows** (PowerShell)
+
+⚠️ **На Windows, особенно на корпоративных ноутбуках, krew обычно НЕ ставится** —
+падает с ошибкой `A required privilege is not held by the client`. krew раскладывает
+плагины через симлинки, а их создание на Windows требует «Режима разработчика» или
+прав администратора, что на рабочих машинах закрыто политикой. **Не тратьте на это
+время: вы уже поставили `virtctl` и `kubelogin` напрямую в шагах 3 и 4 — этого
+достаточно, krew на воркшоп не влияет, пропускайте.** Раздел ниже — только для тех,
+у кого личная машина с админ-правами.
+
 ```powershell
 Invoke-WebRequest -Uri "https://github.com/kubernetes-sigs/krew/releases/latest/download/krew.exe" -OutFile "$HOME\krew.exe"
+Unblock-File "$HOME\krew.exe"
 & "$HOME\krew.exe" install krew
-$old = [Environment]::GetEnvironmentVariable("Path","User")
-[Environment]::SetEnvironmentVariable("Path", "$old;$HOME\.krew\bin", "User")
+[Environment]::SetEnvironmentVariable("Path", ([Environment]::GetEnvironmentVariable("Path","User") + ";$HOME\.krew\bin"), "User")
 Remove-Item "$HOME\krew.exe"
 ```
-Снова закройте и откройте PowerShell.
+Снова закройте и откройте PowerShell. Если увидели `A required privilege is not held` —
+это ровно тот случай: вернитесь к шагам 3 и 4, они дают то же самое без симлинков.
 
 **Ставим плагины:**
 ```bash
@@ -250,9 +260,22 @@ export KUBECONFIG=~/.kube/workshop
 
 **Windows** (PowerShell)
 ```powershell
-notepad $HOME\.kube\workshop   # вставьте, сохраните
-$env:KUBECONFIG = "$HOME\.kube\workshop"
+New-Item -ItemType Directory -Force "$HOME\.kube" | Out-Null
+notepad "$HOME\.kube\workshop"   # вставьте скопированное, сохраните, закройте
+# закрепляем на все будущие окна (а не только на текущее):
+[Environment]::SetEnvironmentVariable("KUBECONFIG", "$HOME\.kube\workshop", "User")
+$env:KUBECONFIG = "$HOME\.kube\workshop"   # и на текущее окно тоже
 ```
+
+⚠️ **Ловушка Блокнота:** при сохранении он молча добавляет `.txt`, и получается
+`workshop.txt` — kubectl такой файл не найдёт. В окне сохранения выберите «Тип файла:
+Все файлы (*.*)» либо возьмите имя в кавычки. Проверить, что файл ровно `workshop`
+без расширения: `Get-ChildItem "$HOME\.kube"`.
+
+⚠️ **`$env:KUBECONFIG` живёт только в текущем окне.** Если открыть новый PowerShell,
+он забудется — поэтому выше мы дополнительно прописали переменную через
+`SetEnvironmentVariable(... "User")`, она переживёт перезапуск. В новом окне проверьте:
+`echo $env:KUBECONFIG` (должен быть путь к файлу).
 
 **Проверяем:**
 ```
@@ -260,6 +283,11 @@ kubectl get vminstance -n tenant-workshopXX
 ```
 Откроется браузер — залогиньтесь как `workshopXX`. После этого команда должна ответить
 `No resources found`. Это правильный ответ: машин пока нет, но кластер вас узнал.
+
+⚠️ **Если видите `dial tcp [::1]:8080: connectex ... refused` (или `localhost:8080`)** —
+это значит, что kubectl НЕ видит kubeconfig: переменная `KUBECONFIG` не задана в этом
+окне или указывает не на тот файл. Проверьте `echo $env:KUBECONFIG` и что файл на месте
+(`Get-ChildItem "$HOME\.kube"`), при нужде задайте переменную заново командой выше.
 
 ⚠️ Две вещи, на которых спотыкаются чаще всего:
 • `KUBECONFIG` должен указывать ровно на тот файл, куда вы вставили конфиг.

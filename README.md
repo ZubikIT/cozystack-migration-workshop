@@ -18,7 +18,7 @@ pod-NIC и переписать конфиг на managed-адреса. Посл
 Их выдаёт ведущий:
 
 * дашборд https://dashboard.workshop.aenix.io
-* логин `pXX`, пароль скажут на месте
+* логин `workshopXX`, пароль скажут на месте
 * kubeconfig берётся в дашборде: Info, вкладка Secrets, секрет `kubeconfig-tenant-workshopXX`
 
 Дальше везде `tenant-workshopXX` меняйте на свой namespace.
@@ -31,7 +31,7 @@ pod-NIC и переписать конфиг на managed-адреса. Посл
 (на Linux это curl бинарника, на маке `brew install kubectl`, на винде
 `winget install -e --id Kubernetes.kubectl`).
 
-`virtctl` и `kubelogin` проще всего поставить плагинами через krew
+На macOS/Linux `virtctl` и `kubelogin` проще всего поставить плагинами через krew
 (https://krew.sigs.k8s.io/docs/user-guide/setup/install/):
 
 ```bash
@@ -39,22 +39,56 @@ kubectl krew install virt
 kubectl krew install oidc-login
 ```
 
-Если с krew возиться не хочется, обе утилиты лежат бинарниками под все ОС:
-virtctl на релизах KubeVirt https://github.com/kubevirt/kubevirt/releases,
-kubelogin на https://github.com/int128/kubelogin/releases (на маке ещё
-`brew install int128/kubelogin/kubelogin`, на винде `choco install kubelogin`).
+**На Windows krew обычно НЕ работает** — падает с `A required privilege is not held
+by the client` (krew создаёт симлинки, а это требует «Режима разработчика» или прав
+администратора, на корп-ноутах закрыто). Не тратьте время: ставьте бинарники напрямую.
+
+**Windows** (PowerShell, папка `$HOME\bin` и её добавление в PATH — см. установку kubectl):
+
+```powershell
+# virtctl
+$ver = (Invoke-RestMethod https://api.github.com/repos/kubevirt/kubevirt/releases/latest).tag_name
+New-Item -ItemType Directory -Force "$HOME\bin" | Out-Null
+Invoke-WebRequest -Uri "https://github.com/kubevirt/kubevirt/releases/download/$ver/virtctl-$ver-windows-amd64.exe" -OutFile "$HOME\bin\virtctl.exe"
+# kubelogin -> имя плагина обязательно kubectl-oidc_login.exe
+Invoke-WebRequest -Uri "https://github.com/int128/kubelogin/releases/latest/download/kubelogin_windows_amd64.zip" -OutFile "$HOME\kubelogin.zip"
+Expand-Archive -Force "$HOME\kubelogin.zip" "$HOME\kl"
+Move-Item -Force "$HOME\kl\kubelogin.exe" "$HOME\bin\kubectl-oidc_login.exe"
+Remove-Item -Recurse -Force "$HOME\kubelogin.zip","$HOME\kl"
+```
+
+Откройте новое окно PowerShell и проверьте: `virtctl version`, `kubectl oidc-login --help`.
+На macOS/Linux те же бинарники лежат на релизах KubeVirt
+(https://github.com/kubevirt/kubevirt/releases) и kubelogin
+(https://github.com/int128/kubelogin/releases, на маке ещё
+`brew install int128/kubelogin/kubelogin`).
 
 kubelogin нужен, потому что kubeconfig ходит в кластер через Keycloak: при первом
-`kubectl` откроется браузер, залогиньтесь как `pXX`.
+`kubectl` откроется браузер, залогиньтесь как `workshopXX`.
 
 Место, где легко споткнуться: `KUBECONFIG` должен указывать ровно на тот файл,
-куда вы вставили kubeconfig. Проверьте:
+куда вы вставили kubeconfig. macOS/Linux:
 
 ```bash
-export KUBECONFIG=~/.kube/workshop-pXX
+export KUBECONFIG=~/.kube/workshop
 kubectl config current-context
 kubectl get vminstance -n tenant-workshopXX
 ```
+
+Windows (PowerShell) — переменную задаём и на текущее окно, и на будущие:
+
+```powershell
+New-Item -ItemType Directory -Force "$HOME\.kube" | Out-Null
+notepad "$HOME\.kube\workshop"    # вставьте kubeconfig; тип файла = Все файлы, иначе Блокнот добавит .txt
+[Environment]::SetEnvironmentVariable("KUBECONFIG", "$HOME\.kube\workshop", "User")
+$env:KUBECONFIG = "$HOME\.kube\workshop"
+kubectl get vminstance -n tenant-workshopXX
+```
+
+Если kubectl отвечает `dial tcp [::1]:8080 ... refused` (или `localhost:8080`) — он не
+видит kubeconfig: переменная `KUBECONFIG` не задана в этом окне или указывает не на тот
+файл. На Windows `$env:KUBECONFIG` живёт только в текущем окне, поэтому его и закрепляют
+через `SetEnvironmentVariable(... "User")`.
 
 Кстати, `kubectl get vmi` или `vm` под тенантом не сработают, `kubevirt.io`
 напрямую закрыт. Смотрите `vminstance`.
@@ -71,7 +105,7 @@ cd cozystack-migration-workshop
 Дальше важный момент. Во всех файлах вместо вашего namespace стоит заглушка
 `tenant-workshopXX`. Если применить манифест как есть, он уедет не туда или вернёт
 ошибку. Поэтому первым делом подставьте свой номер во все файлы разом. Допустим,
-ваш логин `p03`, тогда:
+ваш логин `workshop03`, тогда:
 
 ```bash
 # Linux
