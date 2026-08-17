@@ -12,10 +12,10 @@ CONF=/etc/orders/application.properties
 #   Имена сервисов видны в дашборде: Postgres/Kafka -> ваш инстанс -> Services.
 # =========================================================================
 # значения по умолчанию совпадают с manifests/04-managed.yaml (Postgres=db, Kafka=kafka).
-# Замени только tenant-pXX на свой namespace. Если называл Postgres/Kafka иначе —
+# Замени только tenant-workshopXX на свой namespace. Если называл Postgres/Kafka иначе —
 # поменяй db/kafka на свои имена.
-PG_HOST="postgres-db-rw.tenant-pXX.svc.cozy.local"
-KAFKA_HOST="kafka-kafka-kafka-bootstrap.tenant-pXX.svc.cozy.local"
+PG_HOST="postgres-db-rw.tenant-workshopXX.svc.cozy.local"
+KAFKA_HOST="kafka-kafka-kafka-bootstrap.tenant-workshopXX.svc.cozy.local"
 # =========================================================================
 
 echo "== было (legacy hardcoded IP) =="

@@ -1,11 +1,11 @@
-# Перед применением замените tenant-pXX на свой namespace.
+# Перед применением замените tenant-workshopXX на свой namespace.
 # Проще разом по всем файлам: см. README, раздел про подстановку номера.
 #
 apiVersion: apps.cozystack.io/v1alpha1
 kind: Postgres
 metadata:
   name: db
-  namespace: tenant-pXX
+  namespace: tenant-workshopXX
 spec:
   replicas: 1
   size: 10Gi
@@ -23,7 +23,7 @@ apiVersion: apps.cozystack.io/v1alpha1
 kind: Kafka
 metadata:
   name: kafka
-  namespace: tenant-pXX
+  namespace: tenant-workshopXX
 spec:
   kafka:
     replicas: 1
