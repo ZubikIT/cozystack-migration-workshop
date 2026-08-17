@@ -547,12 +547,19 @@ kubectl apply -f manifests/02-conversion-vm.yaml
 kubectl get vminstance -n tenant-workshopXX -w
 ```
 
-Ждём состояния `Running` (нажмите Ctrl+C, чтобы выйти из слежения). Заходим внутрь:
+Ждём состояния `Running` (нажмите Ctrl+C, чтобы выйти из слежения). Заходим внутрь
+через консоль:
 
 ```bash
-virtctl ssh --namespace=tenant-workshopXX ubuntu@vmi/vm-instance-convert
+virtctl console --namespace=tenant-workshopXX vmi/vm-instance-convert
 ```
-Логин и пароль — `ubuntu` / `ubuntu`.
+Появится приглашение `login:` — вводим `ubuntu`, пароль `ubuntu`. Выйти из консоли:
+`Ctrl+]`.
+
+> Заходим именно через `console`, а не `ssh`: `virtctl ssh` предлагает серверу все
+> ваши ключи из `~/.ssh`, а conversion-VM пускает по паролю — из-за перебора ключей
+> ssh часто рвётся с `Too many authentication failures`. Консоль этого лишена.
+> Через дашборд то же самое даёт кнопка **VNC**.
 
 **Что именно создала эта команда.** В файле описаны два объекта, поэтому в дашборде
 появятся две записи, а не одна:
@@ -566,8 +573,8 @@ virtctl ssh --namespace=tenant-workshopXX ubuntu@vmi/vm-instance-convert
 
 ⚠️ И сразу про имена, иначе будете путаться. Объект в дашборде называется `convert`,
 а машина, которую он поднимает, внутри кластера зовётся **`vm-instance-convert`** —
-с приставкой. Поэтому в дашборде вы ищете `convert`, а в командах `virtctl` пишете
-`vm-instance-convert`.
+с приставкой. Поэтому в дашборде вы ищете `convert`, а в командах `virtctl` цель
+пишете как **`vmi/vm-instance-convert`**.
 
 🖱 **Через дашборд:** создаёте те же два объекта руками, по очереди.
 **1)** **VM Disk → Deploy new**: имя `convert-tools`, source = **image**, образ

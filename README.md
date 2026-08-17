@@ -153,7 +153,7 @@ kubectl apply -f manifests/01-bucket.yaml
 kubectl apply -f manifests/02-conversion-vm.yaml
 ```
 
-Дождитесь Running, зайдите внутрь (`virtctl ssh ubuntu@vmi/vm-instance-convert`,
+Дождитесь Running, зайдите внутрь через консоль (`virtctl console vmi/vm-instance-convert`, login `ubuntu`,
 пароль `ubuntu`), впишите креды в `convert.sh` и запустите. virt-v2v сконвертит
 OVA в qcow2 и зальёт в ваш бакет, а в конце напечатает presigned-ссылку.
 
@@ -191,8 +191,8 @@ kubectl apply -f manifests/04-managed.yaml
 # зайти в app-VM (root/cozydemo)
 virtctl console --namespace=tenant-workshopXX vmi/vm-instance-app-1
 
-# зайти в conversion-VM (ubuntu/ubuntu)
-virtctl ssh --namespace=tenant-workshopXX ubuntu@vmi/vm-instance-convert
+# зайти в conversion-VM (login ubuntu / пароль ubuntu)
+virtctl console --namespace=tenant-workshopXX vmi/vm-instance-convert
 
 # пробросить приложение на localhost
 virtctl port-forward --namespace=tenant-workshopXX vmi/vm-instance-app-1 8088:8080
