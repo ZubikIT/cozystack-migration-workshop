@@ -6,13 +6,24 @@
 # построен разреженный индекс, валидатор схемы включён, а документов без типа
 # не осталось.
 #
+# Запуск (в каждом новом окне терминала переменные задаются заново):
+#   export KUBECONFIG=~/lab.kubeconfig
+#   export COZY_TENANT=workshopXX       # свой номер вместо XX
+#   export MONGO_PASSWORD='пароль пользователя passapp'
+#   cd labs/10-mongodb && ./check.sh
+#
 # Пароль не печатается и в отчёт не попадает.
 # Скрипт поднимает одноразовые поды, поэтому работает около минуты.
 
+# Имя и заголовок нужны общей библиотеке: она подписывает ими отчёт-артефакт.
+# В lib.sh лежат ok/fail/warn/evidence/finish и проверки окружения ниже — чтобы
+# пятнадцать скриптов проверки печатали одинаково, а не каждый по-своему.
 LAB_NAME="10-mongodb"
 LAB_TITLE="Лаба 10 · Документное хранилище"
 . "$(cd "$(dirname "$0")/../../check" && pwd)/lib.sh"
 
+# Обе проверки останавливают скрипт с внятным сообщением, если не задан файл доступа
+# к кластеру или номер тенанта. Без них дальше сыпались бы ошибки kubectl.
 need_kubeconfig
 need_tenant
 
@@ -24,6 +35,11 @@ case "$NS" in
   *) NS="tenant-$NS" ;;
 esac
 
+# Имена по умолчанию — те же, что в лабе. Запись ${X:-значение} означает «взять
+# переменную окружения, а если её нет, подставить значение»: назвали приложение
+# иначе — запустите как MONGO_APP=имя ./check.sh, править скрипт не нужно.
+# Адрес внутренний, из самого кластера; rs0 в имени — это набор реплик, в котором
+# наша единственная копия и живёт.
 MONGO_APP="${MONGO_APP:-passes}"
 MONGO_USER="${MONGO_USER:-passapp}"
 MONGO_DB="${MONGO_DB:-passes}"
@@ -46,6 +62,9 @@ else
   exit $?
 fi
 
+# Всё, что дальше, требует входа в базу. Без пароля скрипт не гадает и не молчит,
+# а честно говорит, что содержимое базы не проверено, и заканчивает отчёт: иначе
+# участник решил бы, что проверка пройдена.
 if [ -z "${MONGO_PASSWORD:-}" ]; then
   fail "не задана переменная MONGO_PASSWORD, содержимое базы не проверено" \
        "export MONGO_PASSWORD='пароль пользователя ${MONGO_USER}' и запустите скрипт снова"
@@ -71,14 +90,14 @@ MONGO_URI="mongodb://${MONGO_USER}:$(_pct "$MONGO_PASSWORD")@${MONGO_HOST}/${MON
 # `restricted`, и лаба провалится по причине, к участнику отношения не имеющей.
 # `--command --` остаётся: kubectl объединяет его с override, где заданы только
 # поля безопасности.
-MONGO_SC='{"spec":{"securityContext":{"runAsNonRoot":true,"runAsUser":999,"seccompProfile":{"type":"RuntimeDefault"}},"containers":[{"name":"mongo-check","image":"mongo:8.0","stdin":true,"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}}}]}}'
-SUMMARY="$(kubectl run "mongo-check" --rm -i --restart=Never --quiet \
-  --pod-running-timeout=90s --overrides="$MONGO_SC" \
-  --image=mongo:8.0 --command -- \
-  mongosh --quiet "$MONGO_URI" --eval '
+# Программа для mongosh. Двойные кавычки внутри неё безопасны: наружу текст уходит
+# через python, который сам его закавычит, а имена базы и коллекции подставляются
+# по меткам ниже.
+MONGO_EVAL=$(cat <<'JSEOF'
+
 var out = {};
 try {
-  var c = db.getSiblingDB("'"$MONGO_DB"'").getCollection("'"$MONGO_COLL"'");
+  var c = db.getSiblingDB("__DB__").getCollection("__COLL__");
   out.ok = 1;
   out.total = c.countDocuments({});
   out.types = c.distinct("type").length;
@@ -93,7 +112,7 @@ try {
   out.sparse = idx.filter(function (i) {
     return i.sparse === true || i.partialFilterExpression !== undefined;
   }).map(function (i) { return i.name; });
-  var info = db.getSiblingDB("'"$MONGO_DB"'").getCollectionInfos({ name: "'"$MONGO_COLL"'" });
+  var info = db.getSiblingDB("__DB__").getCollectionInfos({ name: "__COLL__" });
   var opts = (info && info[0] && info[0].options) ? info[0].options : {};
   out.validator = opts.validator ? 1 : 0;
   out.validationAction = opts.validationAction || "";
@@ -102,8 +121,34 @@ try {
   out.error = String(e.message || e);
 }
 print(JSON.stringify(out));
-' </dev/null 2>/dev/null | tr -d '\r' | grep '^{' | tail -1)"
+JSEOF
+)
+MONGO_EVAL="${MONGO_EVAL//__DB__/$MONGO_DB}"
+MONGO_EVAL="${MONGO_EVAL//__COLL__/$MONGO_COLL}"
 
+# Команда контейнера кладётся ВНУТРЬ override, а не остаётся снаружи в `--command --`.
+# kubectl применяет override как JSON merge patch, а в нём массив containers заменяется
+# целиком: заданный снаружи `--command` до пода не доедет, и вместо mongosh запустился бы
+# штатный процесс образа — то есть сама база. Так же это сделано в check/lib.sh.
+MONGO_SC="$(python3 - "$MONGO_URI" "$MONGO_EVAL" <<'PYEOF'
+import json, sys
+uri, script = sys.argv[1], sys.argv[2]
+print(json.dumps({"spec": {
+  "securityContext": {"runAsNonRoot": True, "runAsUser": 999,
+                      "seccompProfile": {"type": "RuntimeDefault"}},
+  "containers": [{"name": "mongo-check", "image": "mongo:8.0", "stdin": True,
+                  "securityContext": {"allowPrivilegeEscalation": False,
+                                      "capabilities": {"drop": ["ALL"]}},
+                  "command": ["mongosh", "--quiet", uri, "--eval", script]}]}}))
+PYEOF
+)"
+
+SUMMARY="$(kubectl run "mongo-check" --rm -i --restart=Never --quiet \
+  --pod-running-timeout=90s --overrides="$MONGO_SC" \
+  --image=mongo:8.0 </dev/null 2>/dev/null | tr -d '\r' | grep '^{' | tail -1)"
+
+# Достать поле из строки JSON, которую напечатал mongosh. Списки склеиваются через
+# запятую, чтобы их можно было показать участнику как есть.
 mget() {
   printf '%s' "$SUMMARY" | python3 -c '
 import sys, json
@@ -118,6 +163,8 @@ print(v if not isinstance(v, list) else ", ".join(str(x) for x in v))
 ' "$1" 2>/dev/null
 }
 
+# То же, но для чисел: любое неожиданное значение превращается в 0, иначе сравнение
+# ниже упало бы с ошибкой арифметики вместо понятного FAIL.
 num() {
   local v
   v="$(mget "$1")"
@@ -127,6 +174,9 @@ num() {
   esac
 }
 
+# Если ответа нет вовсе или mongosh сообщил об ошибке — дальше проверять нечего.
+# Отказ в аутентификации отделён от прочих ошибок: у него своя частая причина —
+# забытый authSource=admin, и подсказка должна вести именно к ней.
 if [ -z "$SUMMARY" ] || [ "$(mget ok)" != "1" ]; then
   ERR="$(mget error)"
   case "$ERR" in
@@ -149,7 +199,7 @@ if [ "$TOTAL" -ge 4 ]; then
   ok "в коллекции ${MONGO_COLL} документов: ${TOTAL}"
 else
   fail "в коллекции ${MONGO_COLL} всего ${TOTAL} документов, ожидалось не меньше четырёх" \
-       "загрузите пропуска: mo < passes.js (см. шаг 3 в README)"
+       "загрузите пропуска: mo < passes.js (разбор файла — в README)"
 fi
 
 # --- 3. формы действительно разные -----------------------------------------
@@ -226,4 +276,6 @@ else
        "найдите и уберите: db.${MONGO_COLL}.deleteMany({ type: { \$exists: false } })"
 fi
 
+# finish печатает итог и складывает отчёт-артефакт в файл; код возврата — ненулевой,
+# если хоть одна проверка провалилась.
 finish

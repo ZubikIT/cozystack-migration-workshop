@@ -45,200 +45,27 @@
 
 ## Инструменты
 
-Всё ставится на ваш ноутбук, один раз, до начала воркшопа. Утилиты три.
+Нужны `kubectl`, `kubelogin` и `virtctl` — все три ставятся один раз и под любую систему.
+Как именно: **[SETUP.md](SETUP.md)**.
 
-| Утилита | Зачем нужна | Откуда берётся |
-|---|---|---|
-| `kubectl` | Основная команда: применяет файлы, показывает, что в кластере | Пакетный менеджер вашей системы |
-| `virtctl` | Работа с виртуальными машинами: консоль, проброс порта | Один файл с релизов KubeVirt |
-| `kubelogin` | Логин через браузер: без него кластер вас не пустит | Один файл с релизов kubelogin |
-
-**«Один файл» — это буквально.** `virtctl` и `kubelogin` написаны на Go и представляют
-собой один исполняемый файл без зависимостей. Установка сводится к тому, чтобы скачать
-его и положить в папку, где система ищет команды. Ни установщика, ни прав
-администратора (кроме записи в системную папку на macOS и Linux), ни удаления потом —
-достаточно стереть файл.
-
-**Зачем `kubelogin` отдельно.** Доступ к кластеру выдан не по сертификату, а через
-Keycloak — это сервер входа, тот же механизм, что и «войти через корпоративный аккаунт»
-в любом внутреннем сервисе. При первом обращении к кластеру `kubectl` вызовет
-`kubelogin`, тот откроет браузер, вы залогинитесь как `workshopXX`, и полученный пропуск
-будет использоваться дальше. Без этой утилиты `kubectl` просто не поймёт, как логиниться.
-
-⚠️ **Не ставьте krew ради этого воркшопа.** krew — менеджер дополнений для `kubectl`, и
-через него те же две утилиты тоже ставятся, но на прошлых воркшопах именно он съел
-больше всего времени. На Windows он обычно вообще не работает: падает с `A required
-privilege is not held by the client`, потому что создаёт символьные ссылки, а это
-требует «Режима разработчика» или прав администратора — на корпоративных ноутбуках
-закрыто. На macOS и Linux он работает, но добавляет ещё один шаг, который может
-сломаться, а выигрыша не даёт: файлов всё равно два.
-
-Если krew у вас уже стоит и вы им пользуетесь — `kubectl krew install virt` и
-`kubectl krew install oidc-login` сделают то же самое. Если не стоит — не начинайте
-сегодня.
-
-Дальше — по системам. Найдите свою и пропустите остальные.
-
-### Установка: Windows
-
-Все команды — в **PowerShell**, права администратора не нужны. Утилиты кладём в
-`$HOME\bin` — это папка `C:\Users\Вы\bin`.
-
-**1. kubectl** — через встроенный в Windows менеджер пакетов:
-
-```powershell
-winget install -e --id Kubernetes.kubectl
-```
-
-Если `winget` не распознан — он есть не во всех сборках Windows. Тогда качайте файл
-вручную со страницы https://kubernetes.io/docs/tasks/tools/install-kubectl-windows/
-и кладите в ту же `$HOME\bin` из следующего шага.
-
-**2. Создаём папку для утилит и добавляем её в PATH.** PATH — список папок, где система
-ищет команды; без этого шага Windows не найдёт скачанные файлы:
-
-```powershell
-New-Item -ItemType Directory -Force "$HOME\bin" | Out-Null
-[Environment]::SetEnvironmentVariable("PATH", "$env:PATH;$HOME\bin", "User")
-```
-
-**3. virtctl** — узнаём номер последнего выпуска KubeVirt и качаем файл под него:
-
-```powershell
-$ver = (Invoke-RestMethod https://api.github.com/repos/kubevirt/kubevirt/releases/latest).tag_name
-Invoke-WebRequest -Uri "https://github.com/kubevirt/kubevirt/releases/download/$ver/virtctl-$ver-windows-amd64.exe" -OutFile "$HOME\bin\virtctl.exe"
-```
-
-**4. kubelogin** — скачиваем архив, распаковываем, переименовываем:
-
-```powershell
-Invoke-WebRequest -Uri "https://github.com/int128/kubelogin/releases/latest/download/kubelogin_windows_amd64.zip" -OutFile "$HOME\kubelogin.zip"
-Expand-Archive -Force "$HOME\kubelogin.zip" "$HOME\kl"
-Move-Item -Force "$HOME\kl\kubelogin.exe" "$HOME\bin\kubectl-oidc_login.exe"
-Remove-Item -Recurse -Force "$HOME\kubelogin.zip","$HOME\kl"
-```
-
-⚠️ **Имя файла обязано быть `kubectl-oidc_login.exe`**, а не `kubelogin.exe`. `kubectl`
-находит свои дополнения по имени: всё, что называется `kubectl-<что-то>`, становится
-командой `kubectl <что-то>`. Переименуете иначе — логин не заработает, а сообщение об
-ошибке будет говорить совсем о другом.
-
-**5. Откройте новое окно PowerShell** — старое про изменившийся PATH не знает — и
-переходите к проверке ниже.
-
-### Установка: macOS
-
-**1. kubectl и kubelogin** — через Homebrew:
+Проверить, что всё на месте:
 
 ```bash
-brew install kubectl
-brew install int128/kubelogin/kubelogin
-```
-
-Формула kubelogin сама создаёт второй файл с нужным именем `kubectl-oidc_login`,
-переименовывать ничего не надо.
-
-**2. virtctl** — одним файлом с релизов KubeVirt. Команда сама определит номер выпуска
-и тип процессора (Apple Silicon или Intel):
-
-```bash
-# tag_name — номер последнего выпуска, вытаскиваем его из ответа GitHub
-VER=$(curl -sL https://api.github.com/repos/kubevirt/kubevirt/releases/latest \
-      | grep -o '"tag_name": *"[^"]*"' | head -1 | cut -d'"' -f4)
-# uname -m покажет arm64 на Apple Silicon и x86_64 на Intel
-ARCH=$([ "$(uname -m)" = "arm64" ] && echo arm64 || echo amd64)
-# /usr/local/bin — системная папка для команд, поэтому sudo
-sudo curl -sL -o /usr/local/bin/virtctl \
-  "https://github.com/kubevirt/kubevirt/releases/download/$VER/virtctl-$VER-darwin-$ARCH"
-sudo chmod +x /usr/local/bin/virtctl   # разрешаем файлу запускаться
-```
-
-⚠️ **При первом запуске macOS может отказаться открывать файл** — скачан из интернета и
-не подписан. Системные настройки → «Конфиденциальность и безопасность» → внизу кнопка
-«Всё равно открыть». Либо снимите пометку заранее:
-`sudo xattr -d com.apple.quarantine /usr/local/bin/virtctl`.
-
-### Установка: Linux
-
-**1. kubectl** — по официальной инструкции для вашего дистрибутива:
-https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/ (в Ubuntu и Debian это
-подключение репозитория и `apt install kubectl`, в Fedora — `dnf install kubernetes-client`).
-
-**2. virtctl:**
-
-```bash
-VER=$(curl -sL https://api.github.com/repos/kubevirt/kubevirt/releases/latest \
-      | grep -o '"tag_name": *"[^"]*"' | head -1 | cut -d'"' -f4)
-sudo curl -sL -o /usr/local/bin/virtctl \
-  "https://github.com/kubevirt/kubevirt/releases/download/$VER/virtctl-$VER-linux-amd64"
-sudo chmod +x /usr/local/bin/virtctl
-```
-
-**3. kubelogin** — архив, распаковка, установка под нужным именем:
-
-```bash
-curl -sL -o /tmp/kubelogin.zip \
-  https://github.com/int128/kubelogin/releases/latest/download/kubelogin_linux_amd64.zip
-unzip -o /tmp/kubelogin.zip -d /tmp/kubelogin
-# install кладёт файл на место и сразу выставляет права на запуск.
-# Имя обязано быть kubectl-oidc_login — по нему kubectl находит дополнение.
-sudo install -m 0755 /tmp/kubelogin/kubelogin /usr/local/bin/kubectl-oidc_login
-```
-
-### Проверяем, что всё встало
-
-Одинаково на всех системах. Каждая команда должна напечатать версию или справку, а не
-«команда не найдена»:
-
-```bash
-kubectl version --client     # версия kubectl, без обращения к кластеру
+kubectl version --client     # версия kubectl
 virtctl version --client     # версия virtctl
-kubectl oidc-login --help    # справка; работает только если имя файла правильное
+kubectl oidc-login --help    # справка; работает, только если файл назван правильно
 ```
 
-Третья команда — заодно проверка того, что дополнение подхватилось. Если она отвечает
-`unknown command "oidc-login"`, значит файл лежит не в той папке или назван не так.
-
-### Подключаемся к кластеру
-
-Kubeconfig — файл с адресом кластера и данными для входа. Вы берёте его в дашборде:
-`Info` → вкладка `Secrets` → секрет `kubeconfig-tenant-workshopXX`. Дальше его нужно
-сохранить на диск и показать `kubectl`, где он лежит, — через переменную `KUBECONFIG`.
-
-**macOS и Linux:**
+Доступ к кластеру берётся в дашборде: `Info` → вкладка `Secrets` → секрет
+`kubeconfig-tenant-workshopXX`. Сохраните его и укажите:
 
 ```bash
-# Сохраните содержимое секрета в ~/.kube/workshop любым редактором, затем:
-export KUBECONFIG=~/.kube/workshop    # говорим kubectl, какой файл использовать
-kubectl config current-context        # покажет имя кластера — значит файл прочитан
-kubectl get vminstance -n tenant-workshopXX   # первое обращение: откроется браузер
+export KUBECONFIG=~/.kube/workshop
+kubectl config current-context      # покажет имя кластера — значит файл прочитан
 ```
 
-`export` действует до закрытия окна терминала. Чтобы не повторять — допишите ту же
-строку в `~/.zshrc` (macOS) или `~/.bashrc` (Linux).
-
-**Windows (PowerShell)** — переменную задаём и на текущее окно, и на будущие:
-
-```powershell
-New-Item -ItemType Directory -Force "$HOME\.kube" | Out-Null
-# Откроется Блокнот — вставьте туда kubeconfig и сохраните.
-# При сохранении тип файла обязательно "Все файлы", иначе Блокнот допишет .txt
-notepad "$HOME\.kube\workshop"
-# "User" — закрепить переменную для всех будущих окон
-[Environment]::SetEnvironmentVariable("KUBECONFIG", "$HOME\.kube\workshop", "User")
-# ...а эта строка задаёт её в текущем окне, чтобы не перезапускать PowerShell
-$env:KUBECONFIG = "$HOME\.kube\workshop"
-kubectl get vminstance -n tenant-workshopXX
-```
-
-При первом обращении к кластеру откроется браузер — залогиньтесь как `workshopXX`.
-Дальше `kubectl` будет работать молча, пока пропуск не истечёт.
-
-⚠️ **`dial tcp [::1]:8080 ... refused`** (или `localhost:8080`) — самая частая ошибка на
-этом шаге. Означает она не «кластер недоступен», а «kubectl не нашёл kubeconfig и пошёл
-искать кластер у вас на ноутбуке». Причина всегда одна: переменная `KUBECONFIG` не
-задана в этом окне или указывает не на тот файл. На Windows `$env:KUBECONFIG` живёт
-только в текущем окне — поэтому его и закрепляют через `SetEnvironmentVariable(... "User")`.
+⚠️ **Windows:** сохранять файл только в UTF-8 — Блокнот и `>` в PowerShell пишут UTF-16,
+и `kubectl` такой файл не прочитает. Разбор ошибок — в [SETUP.md](SETUP.md).
 
 ## Что где лежит и как применять
 
@@ -439,8 +266,34 @@ kubectl apply -f manifests/01-bucket.yaml
 
 ```bash
 # get = «покажи, что есть». Колонка READY скажет, готово ли.
-kubectl get bucket my-images -n tenant-workshopXX
+# Имя типа пишем полностью — почему, объяснено сразу под командой.
+kubectl get buckets.apps.cozystack.io my-images -n tenant-workshopXX
 ```
+
+⚠️ **Почему не просто `kubectl get bucket`.** Слово `bucket` в этом кластере занято
+трижды: наш тип из каталога, тип Flux и тип стандарта объектных хранилищ. Какой из трёх
+выберет `kubectl` по короткому имени — заранее не известно, и если он выберет чужой, вы
+получите отказ в правах на ресурс, которого не просили:
+
+```
+Error from server (Forbidden): buckets.source.toolkit.fluxcd.io is forbidden:
+User "…#workshopXX" cannot list resource "buckets" in API group
+"source.toolkit.fluxcd.io" in the namespace "tenant-workshopXX"
+```
+
+Это не проблема с доступом и чинить её не надо. Достаточно назвать тип полностью —
+`buckets.apps.cozystack.io`, — и `kubectl` перестанет гадать.
+
+⚠️ **Если `apply` падает с `SchemaError … unknown model in reference`** — это спотыкается
+проверка манифеста на вашей стороне, а не кластер. `kubectl` скачивает описание типов и
+не может разобрать одну из ссылок в нём. Манифест при этом верный. Обойти:
+
+```bash
+kubectl apply -f manifests/01-bucket.yaml --validate=false
+```
+
+Флаг отключает только местную проверку. Сервер всё равно проверит объект у себя и
+отвергнет, если в нём действительно ошибка.
 
 **Что дальше.** Ключи доступа берёте в дашборде: `Bucket` → ваш бакет → вкладка
 `Secrets`. Понадобятся три значения — `bucketName` (сгенерированное имя ведра),
@@ -829,7 +682,7 @@ kubectl apply -f manifests/04-managed.yaml
 
 ```bash
 # Смотрим, как поднимаются. Kafka тяжелее и займёт больше времени, чем Postgres.
-kubectl get postgres,kafka -n tenant-workshopXX
+kubectl get postgres.apps.cozystack.io,kafkas.apps.cozystack.io -n tenant-workshopXX
 ```
 
 ---
@@ -949,177 +802,14 @@ virtctl console --namespace=tenant-workshopXX vmi/vm-instance-convert
 
 ---
 
-## Финальная проверка: три шага строго по порядку
+## Финальная проверка
 
-Здесь спотыкаются чаще всего, поэтому подробно и с указанием, где что выполнять.
+Три шага строго по порядку, и порядок здесь не формальность.
 
-### Шаг 1. Погасить firewalld
+1. **Погасить firewalld** внутри машины — мигрированный CentOS принёс правила из прошлой
+   жизни и наружу открывает только SSH.
+2. **Накатить схему базы** — заказанный сервер пустой, таблиц в нём нет.
+3. **Пробросить порт и создать заказ** — проверка всей цепочки снаружи.
 
-📍 **Где:** внутри вашей виртуальной машины — той, что подняли на третьей фазе.
-Здесь всегда Linux, поэтому команды одни и те же независимо от того, какая система
-на вашем ноутбуке.
-
-Мигрированный CentOS принёс правила из прошлой жизни и наружу открывает только SSH.
-Порт приложения 8080 закрыт, поэтому и `port-forward`, и проверки будут выглядеть
-так, будто приложение не работает. Гасим до всех остальных проверок:
-
-```bash
-# stop  = погасить межсетевой экран прямо сейчас
-# disable = не запускать его при следующей загрузке
-systemctl stop firewalld
-systemctl disable firewalld
-```
-
-Убедиться, что приложение живо изнутри самой машины:
-
-```bash
-# curl — «сходи по адресу и покажи ответ». Здесь мы просим только код ответа:
-#   -s              не показывать индикатор загрузки
-#   -o /dev/null    само тело ответа выбросить, оно нам не нужно
-#   -w '%{http_code}' напечатать код: 200 — здоров, 503 — что-то не подключилось
-# localhost — сама эта машина: проверяем изнутри, минуя сеть и firewall.
-curl -s -o /dev/null -w '%{http_code}\n' localhost:8080/actuator/health
-```
-
-`200` — база и очередь на месте. `503` — возвращайтесь к сети: `netfix-dhcp.sh`
-и перезагрузка, managed-сервисы ещё не резолвятся.
-
-### Шаг 2. Схема базы
-
-📍 **Где:** внутри вашей виртуальной машины — той, что подняли на третьей фазе. Она
-уже в сети кластера и видит базу по имени —
-ставить клиент на ноутбук не нужно.
-
-**Клиент psql.** Штатный клиент CentOS 7 — версии 9.2, он не умеет аутентификацию
-SCRAM и отвечает `psql: SCRAM authentication requires libpq version 10 or above`.
-Нужен клиент 10 или новее; для CentOS 7 в репозитории PGDG доступен максимум 15-й:
-
-```bash
-# Подключаем к системе репозиторий PGDG — официальный источник пакетов PostgreSQL.
-# Сама команда ничего не ставит из базы данных: она добавляет адрес, откуда брать.
-yum install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
-```
-
-Новый клиент кладётся мимо `PATH` — это вторая ловушка, та самая «psql: command not found»:
-
-```bash
-# Ставим клиент 15-й версии (не сервер — он нам не нужен, сервер уже в кластере).
-yum install -y postgresql15
-# command -v ищет psql среди тех папок, о которых система знает.
-# Если не нашёл — вторая половина строки посмотрит туда, куда PGDG кладёт файлы.
-command -v psql || ls /usr/bin/psql /usr/pgsql-*/bin/psql 2>/dev/null
-```
-
-Если нашёлся в `/usr/pgsql-*/bin/`, добавьте каталог в `PATH` на текущую сессию
-(версию подставьте из вывода выше) и проверьте:
-
-```bash
-# PATH — список папок, где система ищет команды. Дописываем к нему нужную,
-# чтобы дальше можно было писать просто psql, а не полный путь.
-# Действует до выхода из сессии; после перезахода придётся повторить.
-export PATH="$PATH:/usr/pgsql-15/bin"
-psql --version
-```
-
-**Куда подключаться.** Адрес базы вы нигде не записывали и не узнаёте — вместо адреса
-здесь имя, и оно собирается по правилам. Короткое имя изнутри гостя не резолвится,
-нужно полное — со своим номером вместо `XX`:
-
-```
-postgres-db-rw.tenant-workshopXX.svc.cozy.local
-└─────┬─────┘ └───────┬───────┘ └──┬──┘└───┬───┘
-      │               │            │       └── общий суффикс внутренних имён кластера
-      │               │            └────────── это имя сервиса, а не машины
-      │               └─────────────────────── ваш namespace, тот самый tenant-workshopXX
-      └─────────────────────────────────────── имя сервиса: postgres «db» на чтение-запись
-```
-
-Разберём первую часть отдельно, она полезнее всего. `postgres-db` — тип и имя того, что
-вы заказали в четвёртой фазе (`kind: Postgres`, `name: db`). Суффикс `-rw` означает
-read-write: это имя всегда указывает на ту копию базы, в которую можно писать. Есть и
-парное `-ro`, только на чтение. Когда платформа переключит главную копию на другой узел,
-имя `-rw` начнёт показывать на неё — а вы ничего не заметите и ничего не будете править.
-
-**Вот почему в конфигах пишут имена, а не адреса.** Ровно эта разница и сломала
-приложение, которое мы чиним: в его настройках были прибиты цифры `192.168.10.30`,
-и переезд превратился в поиск всех мест, где эти цифры записаны.
-
-**Пароль.** Роль `orders`, пароль `Orders2019!` — он прописан в
-`manifests/04-managed.yaml`, искать его нигде не надо.
-
-**Накатываем схему.** Файл `scripts/orders-schema.sql` из этого репозитория:
-
-```bash
-# PGPASSWORD=... перед командой — пароль на один запуск, чтобы psql не спрашивал его.
-#   -h  хост: полное имя сервиса базы внутри кластера
-#   -U  пользователь, которого платформа завела по 04-managed.yaml
-#   -d  база данных
-#   -f  выполнить команды из файла (в отличие от -c — выполнить одну команду строкой)
-PGPASSWORD='Orders2019!' psql \
-  -h postgres-db-rw.tenant-workshopXX.svc.cozy.local -U orders -d orders \
-  -f orders-schema.sql
-```
-
-Проверить, что таблица на месте:
-
-```bash
-# \dt — команда самого psql: «покажи таблицы». Должна появиться таблица orders.
-PGPASSWORD='Orders2019!' psql \
-  -h postgres-db-rw.tenant-workshopXX.svc.cozy.local -U orders -d orders -c '\dt'
-```
-
-Отдельный грант под суперпользователем не нужен: роль `orders` входит в `orders_admin`,
-который владеет и базой, и схемой `public`, — права на создание таблиц у неё уже есть.
-
-Почему это отдельный шаг: проверка здоровья смотрит только на подключение к базе
-и честно ответит `200` даже без таблицы. А вот создать заказ не выйдет — придёт `500`.
-
-### Шаг 3. Проброс порта и проверка снаружи
-
-📍 **Где:** на ноутбуке.
-
-```bash
-# port-forward = прорыть туннель с вашего ноутбука внутрь машины в кластере.
-# 8080:8080 — левое число это порт на ноутбуке, правое порт внутри машины.
-# Аналог в vSphere — проброс порта на NAT-шлюзе, только временный и без правок сети.
-virtctl port-forward --namespace=tenant-workshopXX vmi/vm-instance-app-1 8080:8080
-```
-
-Окно не закрывайте: туннель живёт, пока команда работает. Во втором окне:
-
-```bash
-# health, 200 значит Postgres и Kafka на месте
-curl -s http://localhost:8080/actuator/health
-
-# создать заказ: запись уходит в Postgres, событие — в Kafka
-curl -s -X POST http://localhost:8080/api/orders \
-  -H 'Content-Type: application/json' -d '{"item":"test"}'
-
-# посмотреть список
-curl -s http://localhost:8080/api/orders
-```
-
-Заказ создался — путь пройден целиком.
-
----
-
-## На чём ещё легко застрять
-
-Для conversion-VM берите только `ubuntu-20.04`. На 24.04 ядро паникует, на 22.04
-virt-v2v не разбирает старую RPM-базу CentOS 7.
-
-VMDisk под каталожный образ должен быть больше самого образа, иначе клон не
-пройдёт, а диск потом зависает в Terminating. Для ubuntu-20.04 хватает 25Gi.
-
-На свежей app-VM сначала netfix, потом connect, именно в таком порядке. Иначе
-приложение не увидит managed.
-
-Конвертер после третьей фазы не нужен и держит 8Gi из квоты тенанта. Удаляйте оба
-объекта — машину и диск:
-
-```bash
-# Удаляем оба объекта: сначала машину, потом её диск.
-# В обратном порядке платформа не даст — диск занят работающей машиной.
-kubectl delete vminstance convert --namespace tenant-workshopXX
-kubectl delete vmdisk convert-tools --namespace tenant-workshopXX
-```
+Команды, ожидаемый вывод и разбор всех ошибок, на которые здесь спотыкаются, —
+в **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)**.
