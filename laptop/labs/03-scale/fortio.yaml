@@ -4,7 +4,7 @@
 # Применяется на вашем учебном кластере `lab`, а не в тенанте на управляющем кластере:
 #     export KUBECONFIG=~/lab.kubeconfig
 #     kubectl apply -f fortio.yaml
-# Заглушек вроде tenant-workshopXX здесь нет — подставлять свой номер никуда не нужно.
+# Заглушек вроде tenant-workshop80 здесь нет — подставлять свой номер никуда не нужно.
 # Этот же файл понадобится в лабе 4: `kubectl apply -f ../03-scale/fortio.yaml`.
 #
 # Общие поля манифеста (apiVersion, kind, metadata.name, selector, template,

@@ -5,7 +5,7 @@
 📍 **Где:** на виртуалке, куда вы только что зашли по SSH.
 
 Папка с материалами уже лежит в вашей домашней директории, и **ваш номер тенанта в ней
-уже подставлен**. Заглушки `tenant-workshopXX` заменены на ваш `tenant-workshopNN` при
+уже подставлен**. Заглушки `tenant-workshop80` заменены на ваш `tenant-workshopNN` при
 подготовке виртуалки — искать и заменять ничего не надо, сразу применяйте файлы как есть.
 
 Заходим в папку и смотрим, что внутри:
@@ -22,7 +22,7 @@ ls manifests scripts
 grep -m1 namespace manifests/01-bucket.yaml
 ```
 
-В строке `namespace:` будет ваш `tenant-workshopNN`, а не `tenant-workshopXX`.
+В строке `namespace:` будет ваш `tenant-workshopNN`, а не `tenant-workshop80`.
 
 **Если потерялись** — вернуться всегда одинаково:
 ```bash

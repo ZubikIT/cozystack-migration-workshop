@@ -11,7 +11,7 @@
 # Запускается на ноутбуке, из папки этой лабы. Лаба идёт сразу в двух местах, поэтому
 # и доступов нужно два — к учебному кластеру и к тенанту на управляющем кластере:
 #     export KUBECONFIG=~/lab.kubeconfig
-#     export COZY_TENANT=workshopXX
+#     export COZY_TENANT=workshop80
 #     export COZY_KUBECONFIG=~/.kube/workshop
 #     cd labs/12-vm && ./check.sh
 # Без тенантного доступа скрипт не падает: проверки со стороны тенанта он пропустит

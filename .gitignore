@@ -1,0 +1,4 @@
+workshop*.crash
+kubeconfig
+*.kubeconfig
+.kube/

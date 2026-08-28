@@ -321,11 +321,11 @@ cluster-scoped природа объекта. Он один на кластер,
 
 ```bash
 # get = «покажи, что есть». guestpasses — то самое имя из поля plural ниже:
-#   -n tenant-workshopXX   в каком namespace смотреть; XX замените на свой номер
-kubectl get guestpasses -n tenant-workshopXX
+#   -n tenant-workshop80   в каком namespace смотреть
+kubectl get guestpasses -n tenant-workshop80
 # describe = «покажи всё про один объект»: параметры, состояние, последние события.
 # main здесь — имя конкретного заказанного приложения, а не имя типа.
-kubectl describe guestpass main -n tenant-workshopXX
+kubectl describe guestpass main -n tenant-workshop80
 ```
 
 `plural` — то, что подставляется в команды и в URL API. `singular` — то, что пишут в
@@ -458,7 +458,7 @@ kubectl apply -f applicationdefinition.yaml
 
 ```
 Error from server (Forbidden): error when creating "applicationdefinition.yaml":
-applicationdefinitions.cozystack.io is forbidden: User "workshopXX" cannot create
+applicationdefinitions.cozystack.io is forbidden: User "workshop80" cannot create
 resource "applicationdefinitions" in API group "cozystack.io" at the cluster scope
 ```
 

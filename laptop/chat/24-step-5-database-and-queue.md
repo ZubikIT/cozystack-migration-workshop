@@ -44,7 +44,7 @@ ZooKeeper. Кто ставил — неизвестно, версия — как
 
 ```bash
 kubectl apply -f manifests/04-managed.yaml
-kubectl get postgreses.apps.cozystack.io,kafkas.apps.cozystack.io -n tenant-workshopXX
+kubectl get postgreses.apps.cozystack.io,kafkas.apps.cozystack.io -n tenant-workshop80
 ```
 
 Поднимаются они не мгновенно — пока ждёте, посмотрите в дашборде, что именно создалось.
@@ -61,12 +61,11 @@ kubectl get postgreses.apps.cozystack.io,kafkas.apps.cozystack.io -n tenant-work
 **Записывать ничего не надо, но вот адреса — они пригодятся на шаге 7.** Изнутри
 кластера база и очередь доступны по именам:
 
-• Postgres — `postgres-db-rw.tenant-workshopXX.svc.cozy.local:5432`
-• Kafka — `kafka-kafka-kafka-bootstrap.tenant-workshopXX.svc.cozy.local:9092`
+• Postgres — `postgres-db-rw.tenant-workshop80.svc.cozy.local:5432`
+• Kafka — `kafka-kafka-kafka-bootstrap.tenant-workshop80.svc.cozy.local:9092`
 
 Именно эти две строки через два шага заменят собой прибитые адреса `192.168.10.30`
-и `192.168.10.40` в конфиге приложения. Я пришлю их готовыми командами, свой номер
-подставите вместо `XX`.
+и `192.168.10.40` в конфиге приложения. Я пришлю их готовыми командами — номер тенанта в них уже ваш.
 
 Запомните саму разницу: раньше приложение ходило по прибитому адресу, теперь — по имени.
 Адрес может смениться, имя останется.

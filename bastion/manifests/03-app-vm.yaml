@@ -1,4 +1,4 @@
-# Перед применением замените tenant-workshopXX на свой namespace.
+# Перед применением замените tenant-workshop80 на свой namespace.
 # Проще разом по всем файлам: см. README, раздел про подстановку номера.
 # И ещё: в поле url ниже вставьте presigned-ссылку из convert.sh (шаг 2).
 #
@@ -6,7 +6,7 @@ apiVersion: apps.cozystack.io/v1alpha1
 kind: VMDisk
 metadata:
   name: app-1
-  namespace: tenant-workshopXX
+  namespace: tenant-workshop80
 spec:
   source:
     http:
@@ -18,7 +18,7 @@ apiVersion: apps.cozystack.io/v1alpha1
 kind: VMInstance
 metadata:
   name: app-1
-  namespace: tenant-workshopXX
+  namespace: tenant-workshop80
 spec:
   instanceType: u1.medium
   instanceProfile: centos.7

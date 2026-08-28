@@ -89,7 +89,7 @@ cd labs/11-android
 собирались.
 
 Файл доступа к тенанту (кубконфиг) берётся в дашборде: **Info → вкладка Secrets →
-`kubeconfig-tenant-workshopXX`**, и сохраняется в `~/.kube/workshop`. Это тот же путь,
+`kubeconfig-tenant-workshop80`**, и сохраняется в `~/.kube/workshop`. Это тот же путь,
 что и в остальных лабах.
 
 Тенант → **Создать приложение** → `Bucket`.
@@ -113,7 +113,7 @@ export KUBECONFIG=~/.kube/workshop
 # apply = «приведи кластер к тому, что описано в файле». Команда не создаёт хранилище
 # сама — она передаёт заказ платформе.
 #   -f bucket.yaml   какой файл применить. Перед этим замените в нём
-#                    tenant-workshopXX на свой namespace, иначе заказ уедет не туда
+#                    tenant-workshop80 на свой namespace, иначе заказ уедет не туда
 kubectl apply -f bucket.yaml
 ```
 
@@ -182,13 +182,13 @@ Cozystack. Настоящее имя бакета в хранилище плат
 # Работаем тем же тенантным доступом, что и на прошлом шаге: секрет лежит в тенанте.
 # get secret = «покажи объект с паролями и ключами». Значения внутри секрета лежат
 # в кодировке base64 — это не шифрование, а способ записи двоичных данных текстом.
-#   -n tenant-workshopXX   в каком namespace искать
+#   -n tenant-workshop80   в каком namespace искать
 #   -o jsonpath='...'      отдать не всю карточку объекта, а одно поле из неё:
 #                          .data.accessKey — ключ accessKey внутри раздела data
 #   base64 -d              раскодировать обратно в читаемый вид (d = decode)
 #   ; echo                 добавить перевод строки: без него значение слипнется
 #                          со следующим приглашением терминала
-kubectl -n tenant-workshopXX get secret bucket-builds-ci-credentials \
+kubectl -n tenant-workshop80 get secret bucket-builds-ci-credentials \
   -o jsonpath='{.data.accessKey}' | base64 -d; echo
 ```
 

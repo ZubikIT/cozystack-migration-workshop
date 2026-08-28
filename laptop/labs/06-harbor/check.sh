@@ -26,7 +26,7 @@ need_tenant
 
 APP="passes-api"
 # Пространство имён тенанта на управляющем кластере: имя складывается из префикса
-# tenant- и вашего номера, то есть tenant-workshopXX. Номер берётся из окружения,
+# tenant- и вашего номера, то есть tenant-workshop80. Номер берётся из окружения,
 # подставлять его в текст скрипта руками не нужно.
 TENANT_NS="tenant-${COZY_TENANT}"
 COZY_KUBECONFIG="${COZY_KUBECONFIG:-$HOME/.kube/workshop}"

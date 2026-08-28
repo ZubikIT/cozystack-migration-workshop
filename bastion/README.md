@@ -36,16 +36,16 @@
 
 Один логин и один пароль — они одинаковы во всех трёх местах:
 
-* **дашборд** https://dashboard.workshop.aenix.io — вход в браузере, namespace `tenant-workshopXX`
-* **виртуалка** — вход по SSH: `ssh workshopXX@<адрес-виртуалки>`
+* **дашборд** https://dashboard.workshop.aenix.io — вход в браузере, namespace `tenant-workshop80`
+* **виртуалка** — вход по SSH: `ssh workshop80@157.180.61.252 -p 30821`
 * внутри виртуалки доступ к кластеру уже настроен, kubeconfig лежит в `~/.kube/config`
 
-Везде дальше `workshopXX` меняйте на свой номер (его выдал ведущий).
+Везде дальше `workshop80` меняйте на свой номер (его выдал ведущий).
 
 ## Заходим на виртуалку
 
 ```bash
-ssh workshopXX@<адрес-виртуалки>
+ssh workshop80@157.180.61.252 -p 30821
 ```
 
 Пароль — тот же, что от дашборда. SSH-ключ не нужен: вход по паролю. Проверяем, что
@@ -54,16 +54,16 @@ ssh workshopXX@<адрес-виртуалки>
 
 ```bash
 kubectl config current-context
-kubectl get vminstance -n tenant-workshopXX
+kubectl get vminstance -n tenant-workshop80
 ```
 
-**Должны увидеть:** имя контекста `tenant-workshopXX` и (пока пусто) список машин.
+**Должны увидеть:** имя контекста `tenant-workshop80` и (пока пусто) список машин.
 
 ## Материалы уже на виртуалке
 
 Клонировать ничего не нужно — папка с материалами лежит в вашей домашней директории,
 и ваш номер тенанта в манифестах и скриптах **уже подставлен**: заглушки
-`tenant-workshopXX` заменены на ваш `tenant-workshopNN` при подготовке виртуалки.
+`tenant-workshop80` заменены на ваш `tenant-workshopNN` при подготовке виртуалки.
 Ничего искать и заменять не нужно — сразу применяйте файлы как есть.
 
 ```bash
@@ -89,7 +89,7 @@ grep -rl tenant-workshop manifests | head -1 | xargs grep -m1 namespace   # ув
 
 ```bash
 kubectl apply -f manifests/01-bucket.yaml
-kubectl get buckets.apps.cozystack.io my-images -n tenant-workshopXX
+kubectl get buckets.apps.cozystack.io my-images -n tenant-workshop80
 ```
 
 **Должны увидеть:** `bucket.apps.cozystack.io/my-images created`, затем `READY: True`.
@@ -124,7 +124,7 @@ kubectl get buckets.apps.cozystack.io my-images -n tenant-workshopXX
 
 ```bash
 kubectl apply -f manifests/02-conversion-vm.yaml
-kubectl get vminstance convert -n tenant-workshopXX -w
+kubectl get vminstance convert -n tenant-workshop80 -w
 ```
 
 **Должны увидеть:** две строки с `created`, затем `Running`.
@@ -135,7 +135,7 @@ kubectl get vminstance convert -n tenant-workshopXX -w
 Заходим внутрь (логин `ubuntu`, пароль `ubuntu`):
 
 ```bash
-virtctl console --namespace=tenant-workshopXX vm-instance-convert
+virtctl console --namespace=tenant-workshop80 vm-instance-convert
 ```
 
 Внутри: `nano convert.sh`, вставить текст `scripts/convert.sh`, вписать свои
@@ -169,8 +169,8 @@ sudo bash convert.sh       # запустить внутри неё
 Если её не убрать, новая машина повиснет в `Pending`:
 
 ```bash
-kubectl delete vminstance convert --namespace tenant-workshopXX
-kubectl delete vmdisk convert-tools --namespace tenant-workshopXX
+kubectl delete vminstance convert --namespace tenant-workshop80
+kubectl delete vmdisk convert-tools --namespace tenant-workshop80
 ```
 
 Впишите полученную ссылку в `manifests/03-app-vm.yaml` вместо
@@ -178,7 +178,7 @@ kubectl delete vmdisk convert-tools --namespace tenant-workshopXX
 
 ```bash
 kubectl apply -f manifests/03-app-vm.yaml
-kubectl get vminstance app-1 -n tenant-workshopXX -w
+kubectl get vminstance app-1 -n tenant-workshop80 -w
 ```
 
 **Должны увидеть:** две строки с `created`, затем `Running`. Здесь ожидание дольше —
@@ -187,7 +187,7 @@ kubectl get vminstance app-1 -n tenant-workshopXX -w
 Заходим внутрь (логин `root`, пароль `cozydemo`):
 
 ```bash
-virtctl console --namespace=tenant-workshopXX vm-instance-app-1
+virtctl console --namespace=tenant-workshop80 vm-instance-app-1
 ```
 
 ⚠️ **Сети внутри не будет.** Это не поломка стенда — так и должно быть. Чиним
@@ -204,7 +204,7 @@ virtctl console --namespace=tenant-workshopXX vm-instance-app-1
 
 ```bash
 kubectl apply -f manifests/04-managed.yaml
-kubectl get postgreses.apps.cozystack.io,kafkas.apps.cozystack.io -n tenant-workshopXX
+kubectl get postgreses.apps.cozystack.io,kafkas.apps.cozystack.io -n tenant-workshop80
 ```
 
 **Должны увидеть:** `postgres.apps.cozystack.io/db created` и
@@ -289,20 +289,20 @@ psql --version
 Забираем схему и накатываем (эта app-VM в интернет ходит, файл скачается):
 
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/aenix-org/cozystack-migration-workshop/master/bastion/scripts/orders-schema.sql
+curl -fsSLO https://raw.githubusercontent.com/ZubikIT/cozystack-migration-workshop/master/bastion/scripts/orders-schema.sql
 
 PGPASSWORD='Orders2019!' psql \
-  -h postgres-db-rw.tenant-workshopXX.svc.cozy.local -U orders -d orders \
+  -h postgres-db-rw.tenant-workshop80.svc.cozy.local -U orders -d orders \
   -f orders-schema.sql
 
 PGPASSWORD='Orders2019!' psql \
-  -h postgres-db-rw.tenant-workshopXX.svc.cozy.local -U orders -d orders -c '\dt'
+  -h postgres-db-rw.tenant-workshop80.svc.cozy.local -U orders -d orders -c '\dt'
 ```
 
 **Должны увидеть:** в последней команде — таблицу `orders`.
 
 Адрес базы — не IP, а имя: `postgres-db-rw` (сервис `db` на чтение-запись),
-`tenant-workshopXX` (ваш namespace), `svc.cozy.local` (суффикс внутренних имён
+`tenant-workshop80` (ваш namespace), `svc.cozy.local` (суффикс внутренних имён
 кластера). Пароль задан в `manifests/04-managed.yaml`, искать его нигде не надо.
 
 Подробно: [chat/28](chat/28-step-8-why-it-still-fails.md) ·
@@ -314,16 +314,16 @@ PGPASSWORD='Orders2019!' psql \
 
 Здесь и проявляется главное отличие этого пути: **проброс порта не нужен.** Ведущий
 заранее создал в вашем тенанте `Ingress`, и как только приложение внутри машины слушает
-`8080`, магазин публикуется по адресу `https://app.workshopXX.workshop.aenix.io`
-(`XX` — ваш номер). Проверяйте прямо оттуда:
+`8080`, магазин публикуется по адресу `https://app.workshop80.workshop.aenix.io`.
+Проверяйте прямо оттуда:
 
 ```bash
-curl -s https://app.workshopXX.workshop.aenix.io/actuator/health
+curl -s https://app.workshop80.workshop.aenix.io/actuator/health
 
-curl -s -X POST https://app.workshopXX.workshop.aenix.io/api/orders \
+curl -s -X POST https://app.workshop80.workshop.aenix.io/api/orders \
   -H 'Content-Type: application/json' -d '{"item":"test"}'
 
-curl -s https://app.workshopXX.workshop.aenix.io/api/orders
+curl -s https://app.workshop80.workshop.aenix.io/api/orders
 ```
 
 **Должны увидеть:** заказ в списке. Путь пройден целиком.
@@ -344,16 +344,16 @@ curl -s https://app.workshopXX.workshop.aenix.io/api/orders
 
 ```bash
 # зайти в app-VM (root / cozydemo)
-virtctl console --namespace=tenant-workshopXX vm-instance-app-1
+virtctl console --namespace=tenant-workshop80 vm-instance-app-1
 
 # зайти в conversion-VM (ubuntu / ubuntu)
-virtctl console --namespace=tenant-workshopXX vm-instance-convert
+virtctl console --namespace=tenant-workshop80 vm-instance-convert
 
 # оболочка внутри app-VM по SSH (когда сеть в машине уже поднята)
-virtctl ssh ubuntu@vmi/vm-instance-app-1 --namespace=tenant-workshopXX
+virtctl ssh ubuntu@vmi/vm-instance-app-1 --namespace=tenant-workshop80
 ```
 
-Проверка приложения — по домену `https://app.workshopXX.workshop.aenix.io`, `port-forward`
+Проверка приложения — по домену `https://app.workshop80.workshop.aenix.io`, `port-forward`
 на этом пути не нужен. Выйти из консоли — `Ctrl+]`. Если после подключения экран пустой,
 нажмите Enter. То же самое доступно мышкой: кнопка **VNC** на странице машины в дашборде.
 

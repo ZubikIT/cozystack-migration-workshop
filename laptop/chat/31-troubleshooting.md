@@ -9,7 +9,7 @@
   ```
 
 • **`kubectl` отвечает «forbidden».** Проверьте, что обращаетесь к своему пространству:
-  `-n tenant-workshopXX`. И помните, что доступен `vminstance`, а не `vm` или `vmi`.
+  `-n tenant-workshop80`. И помните, что доступен `vminstance`, а не `vm` или `vmi`.
 
 • **Заказ не создаётся, а здоровье при этом `200`.** Не создана таблица — вернитесь
   к сообщению про схему базы.
@@ -17,8 +17,8 @@
 • **Новая машина (app-VM) висит в `Pending`.** Не погашена машина-конвертер — она
   держит 8Gi квоты, и на новую не хватает. Удалите её и её диск:
   ```bash
-  kubectl delete vminstance convert --namespace tenant-workshopXX
-  kubectl delete vmdisk convert-tools --namespace tenant-workshopXX
+  kubectl delete vminstance convert --namespace tenant-workshop80
+  kubectl delete vmdisk convert-tools --namespace tenant-workshop80
   ```
 
 • **`mc` пишет `Insufficient permissions` при заливке образа.** В `convert.sh` в поле

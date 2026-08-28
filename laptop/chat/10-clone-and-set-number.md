@@ -13,7 +13,7 @@
 **Забираем папку с файлами** (три команды, по одной):
 ```bash
 cd ~
-git clone https://github.com/aenix-org/cozystack-migration-workshop.git
+git clone https://github.com/ZubikIT/cozystack-migration-workshop.git
 cd cozystack-migration-workshop/workshop
 ```
 Первая команда переводит вас в домашнюю папку, вторая скачивает туда папку
@@ -47,29 +47,29 @@ cd ~/cozystack-migration-workshop/workshop
 ⚠️ Не открывайте `.yaml` в Word или Google Docs: они подменяют кавычки и дефисы,
 после этого файл перестаёт применяться, а ошибка выглядит необъяснимо.
 
-Во всех файлах стоит заглушка `tenant-workshopXX`. Подставьте свой номер сразу и во всё,
+Во всех файлах стоит заглушка `tenant-workshop80`. Подставьте свой номер сразу и во всё,
 иначе манифест уедет не туда. Допустим, ваш логин `workshop03`:
 
 **Linux**
 ```bash
-find manifests scripts -type f -exec sed -i 's/tenant-workshopXX/tenant-workshop03/g' {} +
+find manifests scripts -type f -exec sed -i 's/tenant-workshop80/tenant-workshop03/g' {} +
 ```
 
 **macOS** (здесь у `sed` другой синтаксис — обратите внимание на пустые кавычки)
 ```bash
-find manifests scripts -type f -exec sed -i '' 's/tenant-workshopXX/tenant-workshop03/g' {} +
+find manifests scripts -type f -exec sed -i '' 's/tenant-workshop80/tenant-workshop03/g' {} +
 ```
 
 **Windows** (PowerShell)
 ```powershell
 Get-ChildItem -Recurse manifests,scripts -File | ForEach-Object {
-  (Get-Content $_.FullName) -replace 'tenant-workshopXX','tenant-workshop03' | Set-Content $_.FullName
+  (Get-Content $_.FullName) -replace 'tenant-workshop80','tenant-workshop03' | Set-Content $_.FullName
 }
 ```
 
 **Проверяем, что не осталось ни одной заглушки:**
 ```bash
-grep -rn tenant-workshopXX manifests scripts || echo "чисто, можно продолжать"
+grep -rn tenant-workshop80 manifests scripts || echo "чисто, можно продолжать"
 ```
 
 Одно место команда не тронет: в `manifests/03-app-vm.yaml` строка

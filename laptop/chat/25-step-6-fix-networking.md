@@ -14,7 +14,7 @@
 
 Зайдите в машину через консоль — с ноутбука:
 ```bash
-virtctl console --namespace=tenant-workshopXX vm-instance-app-1
+virtctl console --namespace=tenant-workshop80 vm-instance-app-1
 ```
 🖱 **Или мышкой:** в дашборде откройте свою машину и нажмите **VNC** — это та же
 консоль, только в браузере. Оба пути идут через API кластера и работают даже сейчас,

@@ -4,7 +4,7 @@
 |---|---|
 | **Время** | 45 минут |
 | **Что доказывает** | Отчёт по миллиону записей считается за миллисекунды, и заводится это за десять минут |
-| **Что понадобится** | Кластер из лабы 0 и `~/lab.kubeconfig`; доступ в дашборд своего тенанта; номер тенанта вида `workshopXX`, умение читать SQL |
+| **Что понадобится** | Кластер из лабы 0 и `~/lab.kubeconfig`; доступ в дашборд своего тенанта; номер тенанта вида `workshop80`, умение читать SQL |
 
 > ⚠️ **Плотная лаба и требует чтения SQL. Не ставьте её сразу после лабы 8.**
 
@@ -131,7 +131,7 @@ apiVersion: apps.cozystack.io/v1alpha1
 kind: ClickHouse
 metadata:
   name: analytics
-  namespace: tenant-workshopXX
+  namespace: tenant-workshop80
 spec:
   replicas: 1
   shards: 1
@@ -152,7 +152,7 @@ spec:
 `apiVersion: apps.cozystack.io/v1alpha1` — каталог Cozystack с той стороны, откуда его
 видно как API. Дашборд при нажатии кнопки собирает ровно такой объект.
 
-`namespace: tenant-workshopXX` — **управляемые сервисы живут в вашем тенанте на
+`namespace: tenant-workshop80` — **управляемые сервисы живут в вашем тенанте на
 управляющем кластере, а не в лабораторном кластере из лабы 0.** Это два разных кластера,
 и об этом придётся помнить весь остаток лабы.
 
@@ -181,7 +181,7 @@ kubectl --kubeconfig ~/.kube/workshop apply -f clickhouse.yaml
 ```
 
 Кубконфиг тенанта берётся в дашборде: **Info → вкладка Secrets →
-`kubeconfig-tenant-workshopXX`**. Сохраните его в `~/.kube/workshop`.
+`kubeconfig-tenant-workshop80`**. Сохраните его в `~/.kube/workshop`.
 
 Дождитесь готовности. Это две-четыре минуты: поднимается сервер, создаётся том,
 заводится пользователь.
@@ -205,7 +205,7 @@ kubectl --kubeconfig ~/.kube/workshop apply -f clickhouse.yaml
 ClickHouse по внутреннему адресу:
 
 ```
-chendpoint-clickhouse-analytics.tenant-workshopXX.svc.cozy.local:8123
+chendpoint-clickhouse-analytics.tenant-workshop80.svc.cozy.local:8123
 ```
 
 Разберём имя по частям:
@@ -215,7 +215,7 @@ chendpoint-clickhouse-analytics.tenant-workshopXX.svc.cozy.local:8123
 | `chendpoint-` | приставка, которую добавляет оператор ClickHouse к своему сервису |
 | `clickhouse-` | приставка, которую каталог Cozystack добавляет к имени приложения |
 | `analytics` | имя, которое вы задали в дашборде |
-| `tenant-workshopXX` | ваш тенант. Подставьте свой номер |
+| `tenant-workshop80` | ваш тенант. Подставьте свой номер |
 | `svc.cozy.local` | зона внутренних имён управляющего кластера |
 | `8123` | порт HTTP-интерфейса. Есть ещё 9000 — для родного протокола |
 
@@ -234,7 +234,7 @@ export KUBECONFIG=~/lab.kubeconfig
 kubectl run ch-workbench \
   --image=curlimages/curl:8.11.1 \
   --restart=Never \
-  --env=CH_URL="http://chendpoint-clickhouse-analytics.tenant-workshopXX.svc.cozy.local:8123/" \
+  --env=CH_URL="http://chendpoint-clickhouse-analytics.tenant-workshop80.svc.cozy.local:8123/" \
   --env=CH_AUTH="analyst:ЗдесьВашПароль" \
   --command -- sleep 86400
 # wait держит терминал, пока под не запустится, но не дольше двух минут.
@@ -303,7 +303,7 @@ echo 'SELECT version()' | ch
 
 ⚠️ **Если команда молчит или падает с `Could not resolve host` / `Connection refused`** —
 дальше идти бессмысленно. Частые причины по убыванию вероятности: не подставили свой
-номер вместо `workshopXX`; приложение в дашборде ещё не готово; опечатка в имени сервиса.
+номер вместо `workshop80`; приложение в дашборде ещё не готово; опечатка в имени сервиса.
 Если ответ `Authentication failed` — связь есть, а пароль не тот: пересоздайте под с
 правильным `CH_AUTH`.
 

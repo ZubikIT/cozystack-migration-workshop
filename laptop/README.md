@@ -32,10 +32,10 @@
 Выдаёт ведущий:
 
 * дашборд https://dashboard.workshop.aenix.io
-* логин `workshopXX`, пароль скажут на месте
-* kubeconfig — в дашборде: `Info` → вкладка `Secrets` → секрет `kubeconfig-tenant-workshopXX`
+* логин `workshop80`, пароль скажут на месте
+* kubeconfig — в дашборде: `Info` → вкладка `Secrets` → секрет `kubeconfig-tenant-workshop80`
 
-Везде дальше `workshopXX` меняйте на свой номер.
+Везде дальше `workshop80` меняйте на свой номер.
 
 ## До начала: четыре утилиты
 
@@ -68,7 +68,7 @@ kubectl oidc-login --help
 ```bash
 export KUBECONFIG=~/.kube/workshop
 kubectl config current-context
-kubectl get vminstance -n tenant-workshopXX
+kubectl get vminstance -n tenant-workshop80
 ```
 
 **Windows (PowerShell):**
@@ -78,10 +78,10 @@ New-Item -ItemType Directory -Force "$HOME\.kube" | Out-Null
 notepad "$HOME\.kube\workshop"    # вставьте kubeconfig; тип файла — "Все файлы"
 [Environment]::SetEnvironmentVariable("KUBECONFIG", "$HOME\.kube\workshop", "User")
 $env:KUBECONFIG = "$HOME\.kube\workshop"
-kubectl get vminstance -n tenant-workshopXX
+kubectl get vminstance -n tenant-workshop80
 ```
 
-При первом обращении откроется браузер — залогиньтесь как `workshopXX`.
+При первом обращении откроется браузер — залогиньтесь как `workshop80`.
 
 ⚠️ **Windows: файл сохранять только в UTF-8.** Блокнот и перенаправление `>` в PowerShell
 пишут UTF-16, и `kubectl` такой файл не прочитает — ответит
@@ -94,28 +94,28 @@ kubectl get vminstance -n tenant-workshopXX
 
 ```bash
 cd ~
-git clone https://github.com/aenix-org/cozystack-migration-workshop.git
+git clone https://github.com/ZubikIT/cozystack-migration-workshop.git
 cd cozystack-migration-workshop/laptop
 ```
 
 ⚠️ Хвост `/laptop` обязателен: в этой папке лежат материалы ноутбучного пути с
 манифестами и скриптами; без него команды не найдут ни `manifests`, ни `scripts`.
 
-Во всех файлах стоит заглушка `tenant-workshopXX`. Подставьте свой номер разом
+Во всех файлах стоит заглушка `tenant-workshop80`. Подставьте свой номер разом
 (в примере — `workshop03`):
 
 ```bash
 # Linux
-find manifests scripts -type f -exec sed -i 's/tenant-workshopXX/tenant-workshop03/g' {} +
+find manifests scripts -type f -exec sed -i 's/tenant-workshop80/tenant-workshop03/g' {} +
 
 # macOS — тот же sed, но требует пустых кавычек после -i
-find manifests scripts -type f -exec sed -i '' 's/tenant-workshopXX/tenant-workshop03/g' {} +
+find manifests scripts -type f -exec sed -i '' 's/tenant-workshop80/tenant-workshop03/g' {} +
 ```
 
 ```powershell
 # Windows
 Get-ChildItem -Path manifests,scripts -File -Recurse | ForEach-Object {
-  (Get-Content $_.FullName -Raw) -replace 'tenant-workshopXX','tenant-workshop03' |
+  (Get-Content $_.FullName -Raw) -replace 'tenant-workshop80','tenant-workshop03' |
     Set-Content $_.FullName -NoNewline
 }
 ```
@@ -123,7 +123,7 @@ Get-ChildItem -Path manifests,scripts -File -Recurse | ForEach-Object {
 Проверяем, что не осталось ни одной заглушки:
 
 ```bash
-grep -rn tenant-workshopXX manifests scripts || echo "чисто, можно продолжать"
+grep -rn tenant-workshop80 manifests scripts || echo "чисто, можно продолжать"
 ```
 
 Одно место команда не тронет намеренно: в `manifests/03-app-vm.yaml` строка
@@ -143,7 +143,7 @@ grep -rn tenant-workshopXX manifests scripts || echo "чисто, можно п�
 
 ```bash
 kubectl apply -f manifests/01-bucket.yaml
-kubectl get buckets.apps.cozystack.io my-images -n tenant-workshopXX
+kubectl get buckets.apps.cozystack.io my-images -n tenant-workshop80
 ```
 
 **Должны увидеть:** `bucket.apps.cozystack.io/my-images created`, затем `READY: True`.
@@ -178,7 +178,7 @@ kubectl get buckets.apps.cozystack.io my-images -n tenant-workshopXX
 
 ```bash
 kubectl apply -f manifests/02-conversion-vm.yaml
-kubectl get vminstance convert -n tenant-workshopXX -w
+kubectl get vminstance convert -n tenant-workshop80 -w
 ```
 
 **Должны увидеть:** две строки с `created`, затем `Running`.
@@ -189,7 +189,7 @@ kubectl get vminstance convert -n tenant-workshopXX -w
 Заходим внутрь (логин `ubuntu`, пароль `ubuntu`):
 
 ```bash
-virtctl console --namespace=tenant-workshopXX vm-instance-convert
+virtctl console --namespace=tenant-workshop80 vm-instance-convert
 ```
 
 Внутри: `nano convert.sh`, вставить текст `scripts/convert.sh`, вписать свои
@@ -214,8 +214,8 @@ virtctl console --namespace=tenant-workshopXX vm-instance-convert
 Если её не убрать, новая машина повиснет в `Pending`:
 
 ```bash
-kubectl delete vminstance convert --namespace tenant-workshopXX
-kubectl delete vmdisk convert-tools --namespace tenant-workshopXX
+kubectl delete vminstance convert --namespace tenant-workshop80
+kubectl delete vmdisk convert-tools --namespace tenant-workshop80
 ```
 
 Впишите полученную ссылку в `manifests/03-app-vm.yaml` вместо
@@ -223,7 +223,7 @@ kubectl delete vmdisk convert-tools --namespace tenant-workshopXX
 
 ```bash
 kubectl apply -f manifests/03-app-vm.yaml
-kubectl get vminstance app-1 -n tenant-workshopXX -w
+kubectl get vminstance app-1 -n tenant-workshop80 -w
 ```
 
 **Должны увидеть:** две строки с `created`, затем `Running`. Здесь ожидание дольше —
@@ -232,7 +232,7 @@ kubectl get vminstance app-1 -n tenant-workshopXX -w
 Заходим внутрь (логин `root`, пароль `cozydemo`):
 
 ```bash
-virtctl console --namespace=tenant-workshopXX vm-instance-app-1
+virtctl console --namespace=tenant-workshop80 vm-instance-app-1
 ```
 
 ⚠️ **Сети внутри не будет.** Это не поломка стенда — так и должно быть. Чиним
@@ -249,7 +249,7 @@ virtctl console --namespace=tenant-workshopXX vm-instance-app-1
 
 ```bash
 kubectl apply -f manifests/04-managed.yaml
-kubectl get postgreses.apps.cozystack.io,kafkas.apps.cozystack.io -n tenant-workshopXX
+kubectl get postgreses.apps.cozystack.io,kafkas.apps.cozystack.io -n tenant-workshop80
 ```
 
 **Должны увидеть:** `postgres.apps.cozystack.io/db created` и
@@ -333,20 +333,20 @@ psql --version
 Забираем схему и накатываем:
 
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/aenix-org/cozystack-migration-workshop/master/laptop/scripts/orders-schema.sql
+curl -fsSLO https://raw.githubusercontent.com/ZubikIT/cozystack-migration-workshop/master/laptop/scripts/orders-schema.sql
 
 PGPASSWORD='Orders2019!' psql \
-  -h postgres-db-rw.tenant-workshopXX.svc.cozy.local -U orders -d orders \
+  -h postgres-db-rw.tenant-workshop80.svc.cozy.local -U orders -d orders \
   -f orders-schema.sql
 
 PGPASSWORD='Orders2019!' psql \
-  -h postgres-db-rw.tenant-workshopXX.svc.cozy.local -U orders -d orders -c '\dt'
+  -h postgres-db-rw.tenant-workshop80.svc.cozy.local -U orders -d orders -c '\dt'
 ```
 
 **Должны увидеть:** в последней команде — таблицу `orders`.
 
 Адрес базы — не IP, а имя: `postgres-db-rw` (сервис `db` на чтение-запись),
-`tenant-workshopXX` (ваш namespace), `svc.cozy.local` (суффикс внутренних имён
+`tenant-workshop80` (ваш namespace), `svc.cozy.local` (суффикс внутренних имён
 кластера). Пароль задан в `manifests/04-managed.yaml`, искать его нигде не надо.
 
 Подробно: [chat/28](chat/28-step-8-why-it-still-fails.md) ·
@@ -357,7 +357,7 @@ PGPASSWORD='Orders2019!' psql \
 📍 На ноутбуке.
 
 ```bash
-virtctl port-forward --namespace=tenant-workshopXX vmi/vm-instance-app-1 8080:8080
+virtctl port-forward --namespace=tenant-workshop80 vmi/vm-instance-app-1 8080:8080
 ```
 
 Окно не закрывайте — туннель живёт, пока команда работает. Во втором окне:
@@ -386,13 +386,13 @@ curl -s http://localhost:8080/api/orders
 
 ```bash
 # зайти в app-VM (root / cozydemo)
-virtctl console --namespace=tenant-workshopXX vm-instance-app-1
+virtctl console --namespace=tenant-workshop80 vm-instance-app-1
 
 # зайти в conversion-VM (ubuntu / ubuntu)
-virtctl console --namespace=tenant-workshopXX vm-instance-convert
+virtctl console --namespace=tenant-workshop80 vm-instance-convert
 
 # пробросить порт приложения на ноутбук
-virtctl port-forward --namespace=tenant-workshopXX vmi/vm-instance-app-1 8080:8080
+virtctl port-forward --namespace=tenant-workshop80 vmi/vm-instance-app-1 8080:8080
 ```
 
 Выйти из консоли — `Ctrl+]`. Если после подключения экран пустой, нажмите Enter.

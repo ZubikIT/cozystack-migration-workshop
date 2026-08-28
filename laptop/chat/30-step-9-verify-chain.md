@@ -21,7 +21,7 @@ curl -s -o /dev/null -w '%{http_code}\n' localhost:8080/actuator/health
 
 📍 **Дальше — на ноутбуке.** Пробрасываем порт приложения к себе:
 ```bash
-virtctl port-forward --namespace=tenant-workshopXX vmi/vm-instance-app-1 8080:8080
+virtctl port-forward --namespace=tenant-workshop80 vmi/vm-instance-app-1 8080:8080
 ```
 Окно с этой командой не закрывайте: туннель живёт, пока она работает.
 
@@ -36,8 +36,8 @@ virtctl port-forward --namespace=tenant-workshopXX vmi/vm-instance-app-1 8080:80
 
 Если проброс всё равно не поднимается, тот же туннель делается через под машины:
 ```bash
-kubectl get pod -n tenant-workshopXX -l vm.kubevirt.io/name=vm-instance-app-1
-kubectl port-forward -n tenant-workshopXX <имя-пода-из-вывода> 8080:8080
+kubectl get pod -n tenant-workshop80 -l vm.kubevirt.io/name=vm-instance-app-1
+kubectl port-forward -n tenant-workshop80 <имя-пода-из-вывода> 8080:8080
 ```
 
 В другом окне терминала:

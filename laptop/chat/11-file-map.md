@@ -27,7 +27,7 @@
 В **машине-конвертере** есть сеть, поэтому она скачивает файл сама. Репозиторий
 открытый, ключи не нужны:
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/aenix-org/cozystack-migration-workshop/master/laptop/scripts/convert.sh
+curl -fsSLO https://raw.githubusercontent.com/ZubikIT/cozystack-migration-workshop/master/laptop/scripts/convert.sh
 ```
 
 В **вашей виртуалке сети сначала нет вообще** — она и есть та поломка, которую мы чиним
@@ -37,6 +37,6 @@ curl -fsSLO https://raw.githubusercontent.com/aenix-org/cozystack-migration-work
 но подробно и с комментариями: удобно перечитать потом, когда будете повторять
 у себя.
 
-⚠️ **Тонкость, из-за которой всё ломается.** Замену `tenant-workshopXX` на свой номер вы делали
+⚠️ **Тонкость, из-за которой всё ломается.** Замену `tenant-workshop80` на свой номер вы делали
 на ноутбуке. Файл, скачанный внутри машины-конвертера, приходит свежий, с заглушками —
 значения в него вписываются заново, руками.

@@ -10,7 +10,7 @@
 
 Забираем скрипт с гитхаба прямо в машину:
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/aenix-org/cozystack-migration-workshop/master/laptop/scripts/convert.sh
+curl -fsSLO https://raw.githubusercontent.com/ZubikIT/cozystack-migration-workshop/master/laptop/scripts/convert.sh
 ```
 
 Открываем его:

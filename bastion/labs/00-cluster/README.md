@@ -98,7 +98,7 @@ cd labs/00-cluster
 ```bash
 # clone = скачать репозиторий целиком, вместе с историей изменений.
 # Рядом появится папка cozystack-migration-workshop, в неё и переходим.
-git clone https://github.com/aenix-org/cozystack-migration-workshop.git
+git clone https://github.com/ZubikIT/cozystack-migration-workshop.git
 cd cozystack-migration-workshop
 ```
 
@@ -110,7 +110,7 @@ cd cozystack-migration-workshop
 
 Всё, что вы закажете у платформы, живёт на **управляющем кластере** — там же, где ваш
 тенант. Чтобы обращаться к нему командами, нужен файл доступа. Возьмите его в дашборде:
-приложение `Info` → вкладка `Secrets` → секрет `kubeconfig-tenant-workshopXX` → `Reveal`.
+приложение `Info` → вкладка `Secrets` → секрет `kubeconfig-tenant-workshop80` → `Reveal`.
 Скопируйте содержимое и сохраните на виртуалке под именем `~/.kube/workshop`.
 
 Этот путь используется во всех лабах — если сохраните файл в другое место, дальше
@@ -119,7 +119,7 @@ cd cozystack-migration-workshop
 ```bash
 # Проверяем, что файл читается и кластер отвечает.
 # --kubeconfig говорит kubectl, каким файлом доступа пользоваться в этой команде.
-kubectl --kubeconfig ~/.kube/workshop get kubernetes.apps.cozystack.io -n tenant-workshopXX
+kubectl --kubeconfig ~/.kube/workshop get kubernetes.apps.cozystack.io -n tenant-workshop80
 ```
 
 **Что вы должны увидеть:** либо пустой список, либо строку `No resources found` — кластеров
@@ -128,13 +128,13 @@ kubectl --kubeconfig ~/.kube/workshop get kubernetes.apps.cozystack.io -n tenant
 ⚠️ **При первом обращении откроется браузер.** Доступ выдан не сертификатом, а через
 Keycloak — это сервер входа, как «войти через корпоративный аккаунт» во внутренних
 сервисах. `kubectl` вызовет `kubelogin`, тот откроет окно браузера, вы залогинитесь как
-`workshopXX`, и дальше команды пойдут молча, пока пропуск не истечёт. Если вместо браузера
+`workshop80`, и дальше команды пойдут молча, пока пропуск не истечёт. Если вместо браузера
 вы увидели ошибку про отсутствующий плагин — `kubelogin` не установлен либо его файл назван
 не `kubectl-oidc_login`. Как ставить, написано в начале воркшопа.
 
 ⚠️ **Ваш номер тенанта — это логин, под которым вы входите в дашборд:** `workshop03`,
 `workshop07` и так далее. Namespace вашего тенанта складывается из слова `tenant-` и этого
-номера: `tenant-workshop03`. Дальше везде, где написано `workshopXX`, подставляйте свой.
+номера: `tenant-workshop03`. Дальше везде, где написано `workshop80`, подставляйте свой.
 
 ## Шаг 1. Создаём кластер
 
@@ -183,7 +183,7 @@ apiVersion: apps.cozystack.io/v1alpha1
 kind: Kubernetes
 metadata:
   name: lab
-  namespace: tenant-workshopXX
+  namespace: tenant-workshop80
 spec:
   version: v1.35
   storageClass: replicated
@@ -208,7 +208,7 @@ spec:
 ```bash
 # переходим в папку лабы — дальше все файлы берутся отсюда
 cd labs/00-cluster
-# перед применением подставьте в файле свой номер тенанта вместо XX.
+# номер тенанта в файле уже подставлен — менять ничего не нужно.
 # apply = «приведи кластер к тому, что описано в файле». Кластер команда не поднимает
 # сама — она передаёт заказ платформе, а та решает, что и в каком порядке создать.
 #   -f   взять описание из файла
@@ -218,7 +218,7 @@ kubectl apply -f cluster.yaml
 #   -n   в каком namespace искать; без флага kubectl смотрит в namespace по умолчанию
 #   -w   следить и печатать изменения. Выйти — Ctrl+C, установка от этого не прервётся
 # Ждём, пока в колонке READY появится True.
-kubectl -n tenant-workshopXX get kubernetes.apps.cozystack.io lab -w
+kubectl -n tenant-workshop80 get kubernetes.apps.cozystack.io lab -w
 ```
 
 ## Шаг 2. Ждём и смотрим, из чего он собирается
@@ -235,7 +235,7 @@ kubectl -n tenant-workshopXX get kubernetes.apps.cozystack.io lab -w
 # Смотрим на сам заказ и на то, что платформа о нём пишет.
 # Раздел status.conditions в конце вывода — это её отчёт: взяли ли в работу,
 # что мешает, чего ждёт.
-kubectl --kubeconfig ~/.kube/workshop -n tenant-workshopXX \
+kubectl --kubeconfig ~/.kube/workshop -n tenant-workshop80 \
   get kubernetes.apps.cozystack.io lab -o yaml
 ```
 
@@ -244,7 +244,7 @@ kubectl --kubeconfig ~/.kube/workshop -n tenant-workshopXX \
 
 ```bash
 # events = журнал происшествий. Сортируем по времени, чтобы свежее было внизу.
-kubectl --kubeconfig ~/.kube/workshop -n tenant-workshopXX \
+kubectl --kubeconfig ~/.kube/workshop -n tenant-workshop80 \
   get events --sort-by=.lastTimestamp | tail -20
 ```
 
@@ -302,7 +302,7 @@ kubectl --kubeconfig ~/.kube/workshop -n tenant-workshopXX \
 #   base64decode               содержимое секретов хранится закодированным в base64,
 #                              эта функция возвращает исходный текст
 #   > ~/lab.kubeconfig         записать вывод в файл вместо экрана
-kubectl -n tenant-workshopXX get secret kubernetes-lab-admin-kubeconfig \
+kubectl -n tenant-workshop80 get secret kubernetes-lab-admin-kubeconfig \
   -o go-template='{{ printf "%s\n" (index .data "admin.conf" | base64decode) }}' > ~/lab.kubeconfig
 ```
 

@@ -14,10 +14,10 @@ cat /etc/orders/application.properties
 Вы увидите те самые `192.168.10.30` и `192.168.10.40`. Это боль любой легаси-системы:
 никто уже не помнит, почему именно эти адреса.
 
-Замените их на имена сервисов (подставьте свой номер вместо `XX`):
+Замените их на имена сервисов:
 ```bash
-sed -i 's|192.168.10.30|postgres-db-rw.tenant-workshopXX.svc.cozy.local|g' /etc/orders/application.properties
-sed -i 's|192.168.10.40|kafka-kafka-kafka-bootstrap.tenant-workshopXX.svc.cozy.local|g' /etc/orders/application.properties
+sed -i 's|192.168.10.30|postgres-db-rw.tenant-workshop80.svc.cozy.local|g' /etc/orders/application.properties
+sed -i 's|192.168.10.40|kafka-kafka-kafka-bootstrap.tenant-workshop80.svc.cozy.local|g' /etc/orders/application.properties
 systemctl restart orders-api
 ```
 (двумя командами, а не одной с переносом: перенос строки при копировании из чата

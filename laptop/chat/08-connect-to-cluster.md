@@ -7,13 +7,13 @@
 **Ваши доступы:**
 ```
 дашборд: https://dashboard.workshop.aenix.io
-логин:   workshopXX      ← ваш номер, скажу лично
+логин:   workshop80      ← ваш номер, скажу лично
 пароль:  ...             ← скажу лично
 ```
 
 1. Откройте дашборд по ссылке выше.
 2. Войдите под своим логином.
-3. В дашборде: **Info → вкладка Secrets → `kubeconfig-tenant-workshopXX`**. Нажмите *Reveal*,
+3. В дашборде: **Info → вкладка Secrets → `kubeconfig-tenant-workshop80`**. Нажмите *Reveal*,
    скопируйте содержимое.
 4. Сохраните в файл и укажите на него переменную:
 
@@ -32,9 +32,9 @@ $env:KUBECONFIG = "$HOME\.kube\workshop"
 
 **Проверяем:**
 ```
-kubectl get vminstance -n tenant-workshopXX
+kubectl get vminstance -n tenant-workshop80
 ```
-Откроется браузер — залогиньтесь как `workshopXX`. После этого команда должна ответить
+Откроется браузер — залогиньтесь как `workshop80`. После этого команда должна ответить
 `No resources found`. Это правильный ответ: машин пока нет, но кластер вас узнал.
 
 ⚠️ Две вещи, на которых спотыкаются чаще всего:

@@ -22,20 +22,20 @@ curl -s -o /dev/null -w '%{http_code}\n' localhost:8080/actuator/health
 
 📍 **Дальше — проверка снаружи по доменному имени.** Проброс порта на этом пути не нужен:
 ведущий заранее создал в вашем тенанте `Ingress`, и как только приложение внутри машины
-слушает `8080`, магазин публикуется по адресу `https://app.workshopXX.workshop.aenix.io`
-(`XX` — ваш номер). Откройте его в браузере на своём ноутбуке — или проверьте `curl`
+слушает `8080`, магазин публикуется по адресу `https://app.workshop80.workshop.aenix.io`.
+Откройте его в браузере на своём ноутбуке — или проверьте `curl`
 прямо на виртуалке:
 
 ```bash
 # здоровье
-curl -s https://app.workshopXX.workshop.aenix.io/actuator/health
+curl -s https://app.workshop80.workshop.aenix.io/actuator/health
 
 # создаём заказ
-curl -s -X POST https://app.workshopXX.workshop.aenix.io/api/orders \
+curl -s -X POST https://app.workshop80.workshop.aenix.io/api/orders \
   -H 'Content-Type: application/json' -d '{"item":"test"}'
 
 # смотрим, что он записался
-curl -s https://app.workshopXX.workshop.aenix.io/api/orders
+curl -s https://app.workshop80.workshop.aenix.io/api/orders
 ```
 
 ⚠️ Пока app-VM не поднята или ещё грузится, домен отвечает `503` — это нормально:

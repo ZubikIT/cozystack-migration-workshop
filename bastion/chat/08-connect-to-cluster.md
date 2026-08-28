@@ -7,15 +7,15 @@
 **Ваши доступы** (логин и пароль одинаковы во всех трёх местах):
 ```
 дашборд:  https://dashboard.workshop.aenix.io
-виртуалка: ssh workshopXX@<адрес-виртуалки>
-логин:    workshopXX      ← ваш номер, скажу лично
+виртуалка: ssh workshop80@157.180.61.252 -p 30821
+логин:    workshop80      ← ваш номер, скажу лично
 пароль:   ...             ← скажу лично
 ```
 
 Заходим на виртуалку — пароль тот же, что от дашборда, **SSH-ключ не нужен**:
 
 ```bash
-ssh workshopXX@<адрес-виртуалки>
+ssh workshop80@157.180.61.252 -p 30821
 ```
 
 Внутри доступ к кластеру уже настроен: kubeconfig лежит в `~/.kube/config`, и `kubectl`
@@ -24,16 +24,16 @@ ssh workshopXX@<адрес-виртуалки>
 
 ```bash
 kubectl config current-context
-kubectl get vminstance -n tenant-workshopXX
+kubectl get vminstance -n tenant-workshop80
 ```
 
-Первая команда покажет `tenant-workshopXX`, вторая ответит `No resources found`. Это
+Первая команда покажет `tenant-workshop80`, вторая ответит `No resources found`. Это
 правильный ответ: машин пока нет, но кластер вас узнал.
 
 ⚠️ `kubectl get vm` и `kubectl get vmi` работать не будут — под вашей учётной записью
 доступен тип `vminstance`. Так и задумано.
 
 ⚠️ Дашборд в браузере (для наглядных шагов мышкой) — по тому же логину и паролю. А вот
-kubeconfig из дашборда (`Info → Secrets → kubeconfig-tenant-workshopXX`) на виртуалке
+kubeconfig из дашборда (`Info → Secrets → kubeconfig-tenant-workshop80`) на виртуалке
 скачивать **не нужно**: там он рассчитан на вход через браузер, а на виртуалке уже лежит
 готовый, который работает без него.

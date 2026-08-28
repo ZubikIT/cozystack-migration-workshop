@@ -4,7 +4,7 @@
 |---|---|
 | **Время** | 45 минут |
 | **Что доказывает** | Данные разной формы можно хранить без пустых колонок и без таблицы под каждый случай — и за это придётся заплатить дисциплиной |
-| **Что понадобится** | Кластер из лабы 0 и `~/lab.kubeconfig`; доступ в дашборд своего тенанта; номер тенанта вида `workshopXX`, готовность читать код на JavaScript |
+| **Что понадобится** | Кластер из лабы 0 и `~/lab.kubeconfig`; доступ в дашборд своего тенанта; номер тенанта вида `workshop80`, готовность читать код на JavaScript |
 
 > ⚠️ **Лаба плотная, и в ней придётся читать код на JavaScript.** Беритесь за неё на
 > свежую голову, а не сразу после другой длинной лабы. Код везде разобран построчно —
@@ -140,7 +140,7 @@ apiVersion: apps.cozystack.io/v1alpha1
 kind: MongoDB
 metadata:
   name: passes
-  namespace: tenant-workshopXX
+  namespace: tenant-workshop80
 spec:
   replicas: 1
   size: 5Gi
@@ -161,7 +161,7 @@ spec:
     enabled: false
 ```
 
-`namespace: tenant-workshopXX` — **управляемые сервисы живут в вашем тенанте на
+`namespace: tenant-workshop80` — **управляемые сервисы живут в вашем тенанте на
 управляющем кластере, а не в лабораторном кластере из лабы 0.** Это два разных кластера.
 
 `users` и `databases` — две связанные карты, и связь между ними обязательная.
@@ -178,7 +178,7 @@ spec:
 
 Применяется этот файл **не в лабораторный кластер**, а в тенант — значит, и файл доступа
 нужен тенантный. Кубконфиг (файл с адресом кластера и данными для входа) берётся в
-дашборде: **Info → вкладка Secrets → `kubeconfig-tenant-workshopXX`**. Сохраните его
+дашборде: **Info → вкладка Secrets → `kubeconfig-tenant-workshop80`**. Сохраните его
 в `~/.kube/workshop` — этот путь используется во всех лабах.
 
 Теперь заказываем базу текстом. Команда ничего не устанавливает сама: она передаёт заказ
@@ -200,9 +200,9 @@ kubectl --kubeconfig ~/.kube/workshop apply -f mongodb.yaml
 
 ```bash
 # get = «покажи, что есть». Колонка READY скажет, дошёл ли заказ до рабочего состояния.
-#   -n tenant-workshopXX  в каком namespace искать (namespace — перегородка внутри
+#   -n tenant-workshop80  в каком namespace искать (namespace — перегородка внутри
 #                         кластера; ваш тенант это и есть отдельный namespace)
-kubectl --kubeconfig ~/.kube/workshop get mongodb passes -n tenant-workshopXX
+kubectl --kubeconfig ~/.kube/workshop get mongodb passes -n tenant-workshop80
 ```
 
 ⚠️ **Секрет `mongodb-passes-credentials` в дашборде первые минуты будет с пустым
@@ -225,7 +225,7 @@ kubectl --kubeconfig ~/.kube/workshop get mongodb passes -n tenant-workshopXX
 внутреннему адресу:
 
 ```
-mongodb-passes-rs0.tenant-workshopXX.svc.cozy.local:27017
+mongodb-passes-rs0.tenant-workshop80.svc.cozy.local:27017
 ```
 
 | Часть | Что означает |
@@ -233,7 +233,7 @@ mongodb-passes-rs0.tenant-workshopXX.svc.cozy.local:27017
 | `mongodb-` | приставка, которую каталог Cozystack добавляет к имени приложения |
 | `passes` | имя, которое вы задали в дашборде |
 | `-rs0` | имя набора реплик. Оператор так называет сервис первого набора |
-| `tenant-workshopXX` | ваш тенант. Подставьте свой номер |
+| `tenant-workshop80` | ваш тенант. Подставьте свой номер |
 | `svc.cozy.local` | зона внутренних имён управляющего кластера |
 | `27017` | штатный порт MongoDB |
 
@@ -283,7 +283,7 @@ mongodb://passapp:пароль@хост:27017/passes?authSource=admin&directConn
 
 </details>
 
-Поднимаем под. Подставьте свой номер тенанта вместо `workshopXX` и свой пароль вместо
+Поднимаем под. Подставьте свой номер тенанта вместо `workshop80` и свой пароль вместо
 `ЗдесьВашПароль`:
 
 ```bash
@@ -303,7 +303,7 @@ export KUBECONFIG=~/lab.kubeconfig
 kubectl run mongo-workbench \
   --image=mongo:8.0 \
   --restart=Never \
-  --env=MONGO_URI="mongodb://passapp:ЗдесьВашПароль@mongodb-passes-rs0.tenant-workshopXX.svc.cozy.local:27017/passes?authSource=admin&directConnection=true" \
+  --env=MONGO_URI="mongodb://passapp:ЗдесьВашПароль@mongodb-passes-rs0.tenant-workshop80.svc.cozy.local:27017/passes?authSource=admin&directConnection=true" \
   --command -- sleep 86400
 
 # wait = «не отдавай управление, пока условие не выполнится»
@@ -345,7 +345,7 @@ echo 'db.runCommand({ ping: 1 })' | mo
 `kubectl delete pod mongo-workbench` и заново.
 
 ⚠️ **Если ответ `getaddrinfo ENOTFOUND` или подключение висит** — не разрешается имя.
-Скорее всего, не подставили свой номер вместо `workshopXX` или приложение в дашборде ещё
+Скорее всего, не подставили свой номер вместо `workshop80` или приложение в дашборде ещё
 не готово.
 
 Разглядывать данные удобнее не по одной команде, а в живой оболочке — она остаётся

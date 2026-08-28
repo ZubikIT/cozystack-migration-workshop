@@ -112,7 +112,7 @@ packages: [ curl ]
 
 **То же самое текстом.** Оба объекта, диск и машина, лежат в одном файле
 `staff-directory-vm.yaml` и создаются одной командой: сначала диск, потом машина.
-Перед применением откройте файл и замените в нём заглушку `tenant-workshopXX` на имя
+Перед применением откройте файл и замените в нём заглушку `tenant-workshop80` на имя
 своего тенанта — иначе объекты уедут не туда.
 
 ```bash
@@ -251,16 +251,16 @@ export KUBECONFIG=~/.kube/workshop
 # console = подключиться к последовательной консоли машины. Это тот же экран, что даёт
 # «Open Console» в vSphere, только текстовый:
 #   --namespace  в каком разделе кластера искать; у вашего тенанта он называется
-#                tenant- плюс ваш логин, XX замените на свой номер
+#                tenant- плюс ваш логин
 #   vmi/...      цель: запущенный экземпляр машины, а не описание VMInstance
-virtctl console --namespace=tenant-workshopXX vmi/vm-instance-spravochnik
+virtctl console --namespace=tenant-workshop80 vmi/vm-instance-spravochnik
 ```
 
 Если экран после подключения пустой — нажмите Enter, приглашение на вход появится.
 Выход из консоли — `Ctrl+]`.
 
 Имена всех запущенных экземпляров вашего тенанта покажет
-`kubectl --kubeconfig ~/.kube/workshop get vminstance -n tenant-workshopXX`.
+`kubectl --kubeconfig ~/.kube/workshop get vminstance -n tenant-workshop80`.
 
 Осмотритесь. Изнутри это обычная Ubuntu — три команды, которые вы набирали тысячу раз:
 
@@ -515,7 +515,7 @@ export KUBECONFIG=~/lab.kubeconfig
 #   --image=...       образ, внутри которого уже лежит curl; ставить ничего не нужно
 #   --                всё, что идёт после двух дефисов, — команда внутри контейнера
 kubectl run probe --rm -it --restart=Never --image=curlimages/curl:8.11.1 \
-  -- curl -s --max-time 5 http://<адрес-виртуалки>:8000
+  -- curl -s --max-time 5 http://<адрес-вашей-ВМ>:8000
 ```
 
 Связь работает в обе стороны, и ни одна сторона не знает, кто на другом конце.
@@ -532,8 +532,8 @@ kubectl run probe --rm -it --restart=Never --image=curlimages/curl:8.11.1 \
 ```bash
 # доступ к кластеру lab: отсюда скрипт возьмёт Service и поды приложения
 export KUBECONFIG=~/lab.kubeconfig
-# ваш логин без слова tenant-: из него скрипт соберёт имя раздела tenant-workshopXX
-export COZY_TENANT=workshopXX
+# ваш логин без слова tenant-: из него скрипт соберёт имя раздела tenant-workshop80
+export COZY_TENANT=workshop80
 # доступ к тенанту: отсюда скрипт возьмёт саму виртуальную машину
 export COZY_KUBECONFIG=~/.kube/workshop
 # ./ перед именем означает «файл из текущей папки», то есть из labs/12-vm

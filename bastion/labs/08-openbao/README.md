@@ -4,9 +4,9 @@
 |---|---|
 | **Время** | 50 минут |
 | **Что доказывает** | Пароль можно убрать из Git насовсем и менять его, не трогая ни один файл |
-| **Что понадобится** | Кластер из лабы 0 и `~/lab.kubeconfig`; доступ в дашборд своего тенанта; номер тенанта вида `workshopXX` |
+| **Что понадобится** | Кластер из лабы 0 и `~/lab.kubeconfig`; доступ в дашборд своего тенанта; номер тенанта вида `workshop80` |
 
-> ⚠️ **`workshopXX` — это заглушка, а не имя.** Подставьте свой номер тенанта, иначе
+> ⚠️ **`workshop80` — это заглушка, а не имя.** Подставьте свой номер тенанта, иначе
 > команда уйдёт в чужой тенант и вы получите отказ в доступе либо, что хуже, чужие
 > данные. Свой номер вы получили вместе с паролем.
 
@@ -333,7 +333,7 @@ apiVersion: apps.cozystack.io/v1alpha1
 kind: OpenBAO
 metadata:
   name: secrets
-  namespace: tenant-workshopXX
+  namespace: tenant-workshop80
 spec:
   replicas: 1
   size: 2Gi
@@ -350,7 +350,7 @@ spec:
 `kind: OpenBAO` — позиция в каталоге. Обратите внимание на регистр: `OpenBAO`, а не
 `OpenBao`. Кластер к регистру придирчив.
 
-`namespace: tenant-workshopXX` — **управляемые сервисы живут в вашем тенанте на
+`namespace: tenant-workshop80` — **управляемые сервисы живут в вашем тенанте на
 управляющем кластере, а не в лабораторном кластере из лабы 0.** Это два разных кластера,
 и это важно помнить весь остаток лабы: приложение будет в одном, хранилище — в другом.
 
@@ -368,7 +368,7 @@ kubectl --kubeconfig ~/.kube/workshop apply -f openbao.yaml
 ```
 
 Кубконфиг тенанта берётся в дашборде: **Info → вкладка Secrets →
-`kubeconfig-tenant-workshopXX`**. Сохраните его в `~/.kube/workshop`.
+`kubeconfig-tenant-workshop80`**. Сохраните его в `~/.kube/workshop`.
 
 Дальше по тексту мы этим файлом почти не пользуемся: заказ сервисов идёт мышкой, а
 работа с самим OpenBao — по его собственному API.
@@ -390,7 +390,7 @@ kubectl --kubeconfig ~/.kube/workshop apply -f openbao.yaml
 мы и будем ходить в OpenBao — по внутреннему адресу, который есть у любого сервиса:
 
 ```
-openbao-secrets.tenant-workshopXX.svc.cozy.local:8200
+openbao-secrets.tenant-workshop80.svc.cozy.local:8200
 ```
 
 Разберём имя по частям:
@@ -399,7 +399,7 @@ openbao-secrets.tenant-workshopXX.svc.cozy.local:8200
 |---|---|
 | `openbao-` | приставка, которую каталог добавляет к имени. Вы назвали приложение `secrets`, объекты получили имена `openbao-secrets…` |
 | `secrets` | имя, которое вы задали в дашборде |
-| `tenant-workshopXX` | ваш тенант. Подставьте свой номер |
+| `tenant-workshop80` | ваш тенант. Подставьте свой номер |
 | `svc.cozy.local` | зона внутренних имён управляющего кластера |
 | `8200` | порт API OpenBao |
 
@@ -416,7 +416,7 @@ openbao-secrets.tenant-workshopXX.svc.cozy.local:8200
 kubectl run bao-workbench \
   --image=openbao/openbao:2.5.1 \
   --restart=Never \
-  --env=BAO_ADDR=http://openbao-secrets.tenant-workshopXX.svc.cozy.local:8200 \
+  --env=BAO_ADDR=http://openbao-secrets.tenant-workshop80.svc.cozy.local:8200 \
   --command -- sleep 86400
 # wait держит терминал, пока условие не выполнится.
 #   --for=condition=Ready  под запустился и готов принимать команды
@@ -460,7 +460,7 @@ Storage Type       file
 
 ⚠️ **Если команда падает с `connection refused`, `no such host` или `i/o timeout` —**
 дальше идти бессмысленно, сначала связь. Частые причины по убыванию вероятности:
-не подставили свой номер вместо `workshopXX`; приложение в дашборде ещё не готово;
+не подставили свой номер вместо `workshop80`; приложение в дашборде ещё не готово;
 опечатка в имени. Имя собирается по правилу `openbao-<имя приложения>`: приложение вы
 назвали `secrets`, значит в адресе стоит `openbao-secrets`, а не `secrets`.
 
@@ -804,9 +804,9 @@ kubectl create secret generic passes-bao-token \
 
 # macOS: пустые кавычки после -i обязательны — иначе sed примет следующее слово
 # за расширение для резервной копии и ничего не заменит
-sed -i '' 's/tenant-workshopXX/tenant-workshop03/g' secrets-demo.yaml
+sed -i '' 's/tenant-workshop80/tenant-workshop03/g' secrets-demo.yaml
 # Linux
-sed -i 's/tenant-workshopXX/tenant-workshop03/g' secrets-demo.yaml
+sed -i 's/tenant-workshop80/tenant-workshop03/g' secrets-demo.yaml
 ```
 
 <details>
@@ -851,7 +851,7 @@ Init-контейнер — контейнер, который отрабаты�
 ```yaml
           env:
             - name: BAO_ADDR
-              value: http://openbao-secrets.tenant-workshopXX.svc.cozy.local:8200
+              value: http://openbao-secrets.tenant-workshop80.svc.cozy.local:8200
             - name: BAO_TOKEN
               valueFrom:
                 secretKeyRef:

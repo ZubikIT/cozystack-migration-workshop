@@ -26,14 +26,14 @@ VMware хранит его в своём формате, `VMDK`. KVM, на ко�
 
 ```bash
 kubectl apply -f manifests/02-conversion-vm.yaml
-kubectl get vminstance -n tenant-workshopXX -w
+kubectl get vminstance -n tenant-workshop80 -w
 ```
 
 Ждём состояния `Running` (нажмите Ctrl+C, чтобы выйти из слежения). Заходим внутрь
 **через консоль**:
 
 ```bash
-virtctl console --namespace=tenant-workshopXX vm-instance-convert
+virtctl console --namespace=tenant-workshop80 vm-instance-convert
 ```
 
 **Доступ в машину-конвертер:**

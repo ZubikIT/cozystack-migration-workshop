@@ -196,7 +196,7 @@ kubectl get vmagent -n cozy-monitoring \
 ```
 
 ```
-http://vminsert-shortterm.tenant-workshopXX.svc.cozy.local:8480/insert/0/prometheus
+http://vminsert-shortterm.tenant-workshop80.svc.cozy.local:8480/insert/0/prometheus
 ```
 
 Адрес указывает в ваш тенант. Это тот же механизм, каким виртуалка из лабы 12
@@ -236,7 +236,7 @@ https://grafana.<хост вашего тенанта>
 ```bash
 # get secret ... -o jsonpath — достать из секрета одно поле, а не печатать его целиком.
 # Содержимое секретов хранится закодированным в base64, поэтому пропускаем через base64 -d.
-kubectl --kubeconfig ~/.kube/workshop -n tenant-workshopXX \
+kubectl --kubeconfig ~/.kube/workshop -n tenant-workshop80 \
   get secret grafana-admin-password -o jsonpath='{.data.password}' | base64 -d; echo
 ```
 
@@ -319,7 +319,7 @@ managed-сервисов. Без фильтра вы получите смесь
 
 `namespace` — namespace **внутри** кластера `lab`. Приложение из первой лабы разворачивалось
 в `default`, поэтому здесь `default`. Не путайте с namespace тенанта
-(`tenant-workshopXX`) — это разные вещи в разных кластерах. Namespace тенанта лежит в
+(`tenant-workshop80`) — это разные вещи в разных кластерах. Namespace тенанта лежит в
 метке `tenant`.
 
 ```promql
@@ -621,7 +621,7 @@ export KUBECONFIG=~/lab.kubeconfig          # доступ в учебный к�
 # Две переменные ниже дают скрипту доступ ещё и в тенант. С ними он дополнительно
 # проверит, что метрики туда доехали, и напечатает адрес вашей Grafana. Без них
 # проверка пройдёт, но отчёт будет короче.
-export COZY_TENANT=workshopXX               # ваш номер вместо XX
+export COZY_TENANT=workshop80               # номер вашего тенанта
 export COZY_KUBECONFIG=~/.kube/workshop     # файл доступа в тенант
 
 ./check.sh                                  # ./ = «запусти файл из текущей папки»

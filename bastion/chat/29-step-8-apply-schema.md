@@ -2,7 +2,7 @@
 
 **Доступ к базе:**
 ```
-хост:   postgres-db-rw.tenant-workshopXX.svc.cozy.local
+хост:   postgres-db-rw.tenant-workshop80.svc.cozy.local
 база:   orders
 логин:  orders
 пароль: Orders2019!
@@ -55,19 +55,19 @@ psql --version
 **Забираем файл схемы** — сеть у машины уже есть:
 
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/aenix-org/cozystack-migration-workshop/master/bastion/scripts/orders-schema.sql
+curl -fsSLO https://raw.githubusercontent.com/ZubikIT/cozystack-migration-workshop/master/bastion/scripts/orders-schema.sql
 ```
 
 **Накатываем.** Разберём команду по частям, чтобы не вводить вслепую:
 
 ```bash
-PGPASSWORD='Orders2019!' psql -h postgres-db-rw.tenant-workshopXX.svc.cozy.local \
+PGPASSWORD='Orders2019!' psql -h postgres-db-rw.tenant-workshop80.svc.cozy.local \
   -U orders -d orders -f orders-schema.sql
 ```
 
 - `PGPASSWORD='...'` — пароль передаётся переменной окружения, чтобы `psql` не
   спрашивал его в диалоге. Так делают в скриптах.
-- `-h postgres-db-rw.tenant-workshopXX.svc.cozy.local` — адрес базы. Это **не IP**, а
+- `-h postgres-db-rw.tenant-workshop80.svc.cozy.local` — адрес базы. Это **не IP**, а
   внутреннее имя в кластере. Суффикс `-rw` важен: у managed Postgres несколько копий,
   и это имя всегда указывает на ту, в которую **можно писать**. Есть парное имя с `-ro`
   — только для чтения. При переключении ролей между копиями имя не меняется, поэтому в
@@ -82,7 +82,7 @@ PGPASSWORD='Orders2019!' psql -h postgres-db-rw.tenant-workshopXX.svc.cozy.local
 Проверяем, что таблица на месте:
 
 ```bash
-PGPASSWORD='Orders2019!' psql -h postgres-db-rw.tenant-workshopXX.svc.cozy.local \
+PGPASSWORD='Orders2019!' psql -h postgres-db-rw.tenant-workshop80.svc.cozy.local \
   -U orders -d orders -c '\dt'
 ```
 

@@ -91,7 +91,7 @@ cd labs/01-deploy
 
 ```bash
 # clone = скачать репозиторий целиком; рядом появится папка с тем же именем
-git clone https://github.com/aenix-org/cozystack-migration-workshop.git
+git clone https://github.com/ZubikIT/cozystack-migration-workshop.git
 cd labs/01-deploy
 ```
 

@@ -9,7 +9,7 @@
 
 ```bash
 kubectl apply -f manifests/01-bucket.yaml
-kubectl get buckets.apps.cozystack.io -n tenant-workshopXX
+kubectl get buckets.apps.cozystack.io -n tenant-workshop80
 ```
 
 Дождитесь, пока бакет перейдёт в рабочее состояние.

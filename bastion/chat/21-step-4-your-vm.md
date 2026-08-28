@@ -9,8 +9,8 @@
 как поломка стенда. На прошлых воркшопах на этом застряли почти все:
 
 ```bash
-kubectl delete vminstance convert --namespace tenant-workshopXX
-kubectl delete vmdisk convert-tools --namespace tenant-workshopXX
+kubectl delete vminstance convert --namespace tenant-workshop80
+kubectl delete vmdisk convert-tools --namespace tenant-workshop80
 ```
 
 Образ в бакете при этом остаётся — из него и поднимемся.
@@ -20,7 +20,7 @@ kubectl delete vmdisk convert-tools --namespace tenant-workshopXX
 
 ```bash
 kubectl apply -f manifests/03-app-vm.yaml
-kubectl get vminstance -n tenant-workshopXX -w
+kubectl get vminstance -n tenant-workshop80 -w
 ```
 
 Сначала кластер скачает образ по ссылке и разложит его по репликам — это займёт минуту-другую.
@@ -28,7 +28,7 @@ kubectl get vminstance -n tenant-workshopXX -w
 
 Заходим внутрь:
 ```bash
-virtctl console --namespace=tenant-workshopXX vm-instance-app-1
+virtctl console --namespace=tenant-workshop80 vm-instance-app-1
 ```
 
 **Доступ в вашу машину:**

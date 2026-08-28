@@ -5,7 +5,7 @@
 # Это тенантные объекты: они живут НЕ в кластере `lab`, а в вашем namespace
 # на управляющем кластере. Kubeconfig нужен тенантный.
 #
-# Перед применением замените tenant-workshopXX на свой namespace, иначе заказ уедет
+# Перед применением замените tenant-workshop80 на свой namespace, иначе заказ уедет
 # не в ваш тенант.
 #
 #     export KUBECONFIG=~/.kube/workshop
@@ -20,8 +20,8 @@
 # называется vm-instance-X. Плюс к тому цель указывается с префиксом типа, потому что
 # тенантные права выданы на экземпляры (virtualmachineinstances, они же vmi), а не на
 # virtualmachines, — голое имя вернёт forbidden. Отсюда команда входа в консоль:
-#     virtctl console --namespace=tenant-workshopXX vmi/vm-instance-spravochnik
-# Список запущенных экземпляров: kubectl get vmi -n tenant-workshopXX
+#     virtctl console --namespace=tenant-workshop80 vmi/vm-instance-spravochnik
+# Список запущенных экземпляров: kubectl get vmi -n tenant-workshop80
 # А `kubectl get vminstance spravochnik` показывает не экземпляр, а ваш заказ на него —
 # тот самый объект, который описан ниже.
 #
@@ -31,7 +31,7 @@ apiVersion: apps.cozystack.io/v1alpha1
 kind: VMDisk
 metadata:
   name: spravochnik
-  namespace: tenant-workshopXX
+  namespace: tenant-workshop80
 spec:
   source:
     image:
@@ -51,7 +51,7 @@ apiVersion: apps.cozystack.io/v1alpha1
 kind: VMInstance
 metadata:
   name: spravochnik
-  namespace: tenant-workshopXX
+  namespace: tenant-workshop80
 spec:
   # 1 процессор, 4 ГБ. Тот же справочник каталога, из которого берутся
   # размеры узлов Kubernetes: машины и узлы здесь меряются одинаково.

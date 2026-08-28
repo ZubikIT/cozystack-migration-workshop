@@ -46,6 +46,6 @@ git --version
 
 🖱 **Если ставить git не хочется** — он нужен ровно один раз, чтобы скачать папку
 с файлами. Можно обойтись браузером: откройте
-https://github.com/aenix-org/cozystack-migration-workshop, нажмите зелёную кнопку
+https://github.com/ZubikIT/cozystack-migration-workshop, нажмите зелёную кнопку
 **Code → Download ZIP** и распакуйте архив. Дальше всё то же самое, только вместо
 `cd cozystack-migration-workshop` заходите в распакованную папку.

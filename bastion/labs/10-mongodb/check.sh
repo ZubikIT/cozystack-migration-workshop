@@ -8,7 +8,7 @@
 #
 # Запуск (в каждом новом окне терминала переменные задаются заново):
 #   export KUBECONFIG=~/lab.kubeconfig
-#   export COZY_TENANT=workshopXX       # свой номер вместо XX
+#   export COZY_TENANT=workshop80       # номер вашего тенанта
 #   export MONGO_PASSWORD='пароль пользователя passapp'
 #   cd labs/10-mongodb && ./check.sh
 #

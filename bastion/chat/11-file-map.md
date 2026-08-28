@@ -28,7 +28,7 @@
 В **машине-конвертере** есть сеть, поэтому она скачивает файл сама. Репозиторий
 открытый, ключи не нужны:
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/aenix-org/cozystack-migration-workshop/master/bastion/scripts/convert.sh
+curl -fsSLO https://raw.githubusercontent.com/ZubikIT/cozystack-migration-workshop/master/bastion/scripts/convert.sh
 ```
 
 В **вашей app-VM сети сначала нет вообще** — она и есть та поломка, которую мы чиним
@@ -38,7 +38,7 @@ curl -fsSLO https://raw.githubusercontent.com/aenix-org/cozystack-migration-work
 но подробно и с комментариями: удобно перечитать потом, когда будете повторять у себя.
 
 ⚠️ **Номер тенанта в манифестах уже подставлен** — при подготовке виртуалки заглушки
-`tenant-workshopXX` заменены на ваш номер. Вписывать вручную ничего не нужно. Единственное,
+`tenant-workshop80` заменены на ваш номер. Вписывать вручную ничего не нужно. Единственное,
 что вы заполняете сами, — это `bucketName`, `accessKey` и `secretKey` в `convert.sh`
 (он скачивается в конвертер свежим, с заглушками `ВСТАВЬТЕ_...`), и presigned-ссылку
 в `manifests/03-app-vm.yaml` на четвёртом шаге.
