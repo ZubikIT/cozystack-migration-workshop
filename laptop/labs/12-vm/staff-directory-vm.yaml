@@ -5,7 +5,7 @@
 # Это тенантные объекты: они живут НЕ в кластере `lab`, а в вашем namespace
 # на управляющем кластере. Kubeconfig нужен тенантный.
 #
-# Перед применением замените tenant-workshop80 на свой namespace, иначе заказ уедет
+# Namespace tenant-workshop80 уже подставлен. Чужой namespace тут опасен: заказ уедет
 # не в ваш тенант.
 #
 #     export KUBECONFIG=~/.kube/workshop

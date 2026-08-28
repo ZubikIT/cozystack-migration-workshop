@@ -1,4 +1,4 @@
-# Перед применением замените tenant-workshop80 на свой namespace.
+# Namespace tenant-workshop80 уже подставлен — менять ничего не нужно.
 # Проще разом по всем файлам: см. README, раздел про подстановку номера.
 #
 apiVersion: apps.cozystack.io/v1alpha1

@@ -1,0 +1,44 @@
+$ kubectl config current-context
+tenant-workshop80
+
+$ kubectl get kubernetes.apps.cozystack.io -n tenant-workshop80
+NAME   READY   AGE   VERSION
+lab    False   27s   7c18a8ec4e4d
+
+$ kubectl get pods -n tenant-workshop80 --no-headers | head -20
+bucket-my-images-ui-867cd799c4-c2ktj                 1/1   Running   0            14m
+kubernetes-lab-7c5b9976b4-s4992                      1/4   Running   0            20s
+kubernetes-lab-bootstrap-token-tenant-gxxkj          0/1   Error     1 (7s ago)   25s
+kubernetes-lab-cluster-autoscaler-7d8d6c6bbf-5gvhf   0/1   Error     1 (8s ago)   25s
+kubernetes-lab-kccm-6694df85c-trxdr                  1/1   Running   0            25s
+kubernetes-lab-talos-reconcile-md0-a083ff-ccmnh      1/1   Running   0            25s
+
+$ kubectl get kubernetes.apps.cozystack.io -n tenant-workshop80
+NAME   READY   AGE   VERSION
+lab    True    2m    7c18a8ec4e4d
+
+$ kubectl -n tenant-workshop80 get secret kubernetes-lab-admin-kubeconfig -o go-template='{{ printf "%s\n" (index .data "admin.conf" | base64decode) }}' > ~/lab.kubeconfig && wc -l ~/lab.kubeconfig
+Error from server (Forbidden): secrets "kubernetes-lab-admin-kubeconfig" is forbidden: User "system:serviceaccount:tenant-workshop80:workshop80" cannot get resource "secrets" in API group "" in the namespace "tenant-workshop80"
+
+$ export KUBECONFIG=~/lab.kubeconfig; kubectl get nodes
+E0828 09:27:04.340011   81331 memcache.go:265] "Unhandled Error" err="couldn't get current server API group list: the server could not find the requested resource"
+E0828 09:27:04.341501   81331 memcache.go:265] "Unhandled Error" err="couldn't get current server API group list: the server could not find the requested resource"
+E0828 09:27:04.343193   81331 memcache.go:265] "Unhandled Error" err="couldn't get current server API group list: the server could not find the requested resource"
+E0828 09:27:04.344587   81331 memcache.go:265] "Unhandled Error" err="couldn't get current server API group list: the server could not find the requested resource"
+E0828 09:27:04.345855   81331 memcache.go:265] "Unhandled Error" err="couldn't get current server API group list: the server could not find the requested resource"
+Error from server (NotFound): the server could not find the requested resource
+
+$ rm -f ~/lab.kubeconfig; kubectl auth can-i get secret/kubernetes-lab-admin-kubeconfig -n tenant-workshop80; kubectl auth can-i get secrets -n tenant-workshop80
+no
+no
+
+$ kubectl -n tenant-workshop80 get secret kubernetes-lab-admin-kubeconfig -o name
+Error from server (Forbidden): secrets "kubernetes-lab-admin-kubeconfig" is forbidden: User "system:serviceaccount:tenant-workshop80:workshop80" cannot get resource "secrets" in API group "" in the namespace "tenant-workshop80"
+
+$ kubectl get vmdisks.apps.cozystack.io -n tenant-workshop80; echo ---; kubectl get vminstances.apps.cozystack.io -n tenant-workshop80; echo ---; kubectl get pvc -n tenant-workshop80 2>&1 | head
+---
+No resources found in tenant-workshop80 namespace.
+No resources found in tenant-workshop80 namespace.
+---
+Error from server (Forbidden): persistentvolumeclaims is forbidden: User "system:serviceaccount:tenant-workshop80:workshop80" cannot list resource "persistentvolumeclaims" in API group "" in the namespace "tenant-workshop80"
+
