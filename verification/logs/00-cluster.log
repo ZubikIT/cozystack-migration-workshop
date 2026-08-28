@@ -130,3 +130,26 @@ $ kubectl get events -n tenant-workshop80 --sort-by=.lastTimestamp 2>&1 | grep -
 5m28s       Warning   FailedCreate          replicaset/kubernetes-lab-958664b7c                         Error creating: pods "kubernetes-lab-958664b7c-mz7jf" is forbidden: exceeded quota: tenant-quota, requested: limits.cpu=3700m,requests.cpu=360m, used: limits.cpu=4724m,requests.cpu=660m, limited: limits.cpu=8,requests.cpu=800m
 2m33s       Warning   InstallFailed         helmrelease/kubernetes-lab-cilium                           Helm install failed for release cozy-cilium/cilium with chart cozy-cilium@0.0.0+457dbc20e0b4: timeout waiting for: [Deployment/cozy-cilium/cilium-operator status: 'InProgress']...
 
+$ kubectl delete kubernetes.apps.cozystack.io lab -n tenant-workshop80
+kubernetes.apps.cozystack.io "lab" deleted from tenant-workshop80 namespace
+
+$ kubectl get kubernetes.apps.cozystack.io -n tenant-workshop80; echo "--- поды ---"; kubectl get pods -n tenant-workshop80 --no-headers; echo "--- квота ---"; kubectl describe resourcequota -n tenant-workshop80 2>&1 | tail -6; echo "--- убираю свои файлы с виртуалки ---"; rm -rf ~/labcheck ~/labs.tgz ~/lab.kubeconfig ~/super.kubeconfig 2>/dev/null; ls ~
+NAME   READY   AGE   VERSION
+lab    True    46m   7c18a8ec4e4d
+--- поды ---
+bucket-my-images-ui-867cd799c4-c2ktj                 1/1   Running             0             59m
+kubernetes-lab-7c5b9976b4-s4992                      4/4   Running             0             45m
+kubernetes-lab-cluster-autoscaler-7d8d6c6bbf-5gvhf   1/1   Running             2 (45m ago)   46m
+kubernetes-lab-kccm-6694df85c-trxdr                  1/1   Running             0             46m
+kubernetes-lab-oidc-bootstrap-2pb4x                  0/1   Completed           0             44m
+kubernetes-lab-pre-cleanup-rrlvf                     0/1   ContainerCreating   0             8s
+--- квота ---
+Resource         Used        Hard
+--------         ----        ----
+limits.cpu       4924m       8
+limits.memory    4352Mi      10Gi
+requests.cpu     670m        800m
+requests.memory  3187671040  10737418240
+--- убираю свои файлы с виртуалки ---
+workshop
+

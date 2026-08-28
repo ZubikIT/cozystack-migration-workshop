@@ -1,0 +1,11 @@
+$ cd ~/workshop && kubectl apply -f manifests/02-conversion-vm.yaml
+vmdisk.apps.cozystack.io/convert-tools created
+vminstance.apps.cozystack.io/convert created
+
+$ kubectl get vminstance,vmdisk -n tenant-workshop80
+NAME      READY   AGE   VERSION
+convert   False   1s    f379a04795e8
+
+NAME            READY     AGE   VERSION
+convert-tools   Unknown   1s    c75c2c4a99f7
+
