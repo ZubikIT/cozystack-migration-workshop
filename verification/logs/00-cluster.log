@@ -99,3 +99,34 @@ notBefore=Aug 12 11:29:21 2026 GMT
 notAfter=Aug 12 11:34:21 2027 GMT
 
 
+$ echo "--- поды тенанта ---"; kubectl get pods -n tenant-workshop80 --no-headers; echo "--- квота ---"; kubectl describe resourcequota -n tenant-workshop80 2>&1 | head -20
+--- поды тенанта ---
+bucket-my-images-ui-867cd799c4-c2ktj                 1/1   Running     0             57m
+kubernetes-lab-7c5b9976b4-s4992                      4/4   Running     0             43m
+kubernetes-lab-cluster-autoscaler-7d8d6c6bbf-5gvhf   1/1   Running     2 (43m ago)   43m
+kubernetes-lab-kccm-6694df85c-trxdr                  1/1   Running     0             43m
+kubernetes-lab-oidc-bootstrap-2pb4x                  0/1   Completed   0             42m
+--- квота ---
+Name:            tenant-quota
+Namespace:       tenant-workshop80
+Resource         Used        Hard
+--------         ----        ----
+limits.cpu       4724m       8
+limits.memory    4224Mi      10Gi
+requests.cpu     660m        800m
+requests.memory  3120562176  10737418240
+
+$ kubectl get events -n tenant-workshop80 --sort-by=.lastTimestamp 2>&1 | grep -iE "quota|exceeded|forbidden|fail" | tail -12
+43m         Warning   BackOff               pod/kubernetes-lab-cluster-autoscaler-7d8d6c6bbf-5gvhf      Back-off restarting failed container cluster-autoscaler in pod kubernetes-lab-cluster-autoscaler-7d8d6c6bbf-5gvhf_tenant-workshop80(348b96d8-4e40-44ea-918f-a06eb810d31c)
+43m         Warning   BackOff               pod/kubernetes-lab-bootstrap-token-tenant-gxxkj             Back-off restarting failed container kubectl in pod kubernetes-lab-bootstrap-token-tenant-gxxkj_tenant-workshop80(26a15ca3-3187-45df-a1e6-cc05559e079e)
+33m         Warning   InstallFailed         helmrelease/kubernetes-lab-cilium                           Helm install failed for release cozy-cilium/cilium with chart cozy-cilium@0.0.0+457dbc20e0b4: timeout waiting for: [Deployment/cozy-cilium/cilium-operator status: 'InProgress']...
+33m         Warning   FailedCreate          replicaset/kubernetes-lab-kcsi-controller-5bbbf7f98         (combined from similar events): Error creating: pods "kubernetes-lab-kcsi-controller-5bbbf7f98-fh9pb" is forbidden: exceeded quota: tenant-quota, requested: limits.cpu=3584m,requests.cpu=875m, used: limits.cpu=4724m,requests.cpu=660m, limited: limits.cpu=8,requests.cpu=800m
+33m         Warning   FailedCreate          replicaset/kubernetes-lab-958664b7c                         (combined from similar events): Error creating: pods "kubernetes-lab-958664b7c-gbmfc" is forbidden: exceeded quota: tenant-quota, requested: limits.cpu=3700m,requests.cpu=360m, used: limits.cpu=4724m,requests.cpu=660m, limited: limits.cpu=8,requests.cpu=800m
+23m         Warning   InstallFailed         helmrelease/kubernetes-lab-cilium                           Helm install failed for release cozy-cilium/cilium with chart cozy-cilium@0.0.0+457dbc20e0b4: timeout waiting for: [Deployment/cozy-cilium/cilium-operator status: 'InProgress']...
+22m         Warning   FailedCreate          replicaset/kubernetes-lab-kcsi-controller-5bbbf7f98         Error creating: pods "kubernetes-lab-kcsi-controller-5bbbf7f98-hz796" is forbidden: exceeded quota: tenant-quota, requested: limits.cpu=3584m,requests.cpu=875m, used: limits.cpu=4724m,requests.cpu=660m, limited: limits.cpu=8,requests.cpu=800m
+22m         Warning   FailedCreate          replicaset/kubernetes-lab-958664b7c                         Error creating: pods "kubernetes-lab-958664b7c-sqnjv" is forbidden: exceeded quota: tenant-quota, requested: limits.cpu=3700m,requests.cpu=360m, used: limits.cpu=4724m,requests.cpu=660m, limited: limits.cpu=8,requests.cpu=800m
+12m         Warning   InstallFailed         helmrelease/kubernetes-lab-cilium                           Helm install failed for release cozy-cilium/cilium with chart cozy-cilium@0.0.0+457dbc20e0b4: timeout waiting for: [Deployment/cozy-cilium/cilium-operator status: 'InProgress']...
+5m33s       Warning   FailedCreate          replicaset/kubernetes-lab-kcsi-controller-5bbbf7f98         Error creating: pods "kubernetes-lab-kcsi-controller-5bbbf7f98-9wmsn" is forbidden: exceeded quota: tenant-quota, requested: limits.cpu=3584m,requests.cpu=875m, used: limits.cpu=4724m,requests.cpu=660m, limited: limits.cpu=8,requests.cpu=800m
+5m28s       Warning   FailedCreate          replicaset/kubernetes-lab-958664b7c                         Error creating: pods "kubernetes-lab-958664b7c-mz7jf" is forbidden: exceeded quota: tenant-quota, requested: limits.cpu=3700m,requests.cpu=360m, used: limits.cpu=4724m,requests.cpu=660m, limited: limits.cpu=8,requests.cpu=800m
+2m33s       Warning   InstallFailed         helmrelease/kubernetes-lab-cilium                           Helm install failed for release cozy-cilium/cilium with chart cozy-cilium@0.0.0+457dbc20e0b4: timeout waiting for: [Deployment/cozy-cilium/cilium-operator status: 'InProgress']...
+

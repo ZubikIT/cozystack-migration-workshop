@@ -42,7 +42,8 @@
 
 | Лаба | Итог | Лог |
 |---|---|---|
-| 00 · Кластер | заказан, поднимается | [`logs/00-cluster.log`](logs/00-cluster.log) |
+| 00 · Кластер | **не проходится**: узлов нет, кубконфиг без прав | [`logs/00-cluster.log`](logs/00-cluster.log) |
+| 01–14 | не запускались — упёрлись в лабу 00 | — |
 
 ## Что нашлось
 
@@ -143,14 +144,43 @@ issuer  = CN = kubernetes
 **Следствие:** участник, дойдя до конца лабы 00 ровно по инструкции, получает файл,
 которым нельзя сделать ни одной команды из лаб 01–14.
 
+### 6. Учебный кластер не помещается в квоту тенанта
+
+Главная причина, по которой лабы 01–14 недостижимы. `kubectl get nodes` в кластере `lab`
+отвечает `No resources found` — узлов нет вовсе, хотя платформа показывает `Ready`.
+В событиях тенанта видно, почему:
+
+```
+Error creating: pods "kubernetes-lab-kcsi-controller-..." is forbidden:
+exceeded quota: tenant-quota,
+requested: limits.cpu=3584m, requests.cpu=875m,
+used:      limits.cpu=4724m, requests.cpu=660m,
+limited:   limits.cpu=8,     requests.cpu=800m
+```
+
+```
+Warning InstallFailed helmrelease/kubernetes-lab-cilium
+Helm install failed: timeout waiting for: [Deployment/cozy-cilium/cilium-operator]
+```
+
+Потолок тенанта по `requests.cpu` — 800m. Только `kcsi-controller` просит 875m, ещё один
+компонент — 360m. Не хватит и в пустом тенанте: заказ кластера из `labs/00-cluster/cluster.yaml`
+на этом стенде не выполним в принципе.
+
+Статус `Ready` при этом вводит в заблуждение: управляющий слой поднялся, а сеть и узлы —
+нет. Участник, идущий по README, увидит `Ready`, пойдёт за кубконфигом и упрётся.
+
 ## Итог
 
 Прогон остановлен на лабе 00. Причина не в текстах: тексты описывают стенд, который
 под лабы не готовили. Чтобы лабы стали проходимыми, нужно на стороне стенда:
 
-1. дать учётке участника право читать секрет `kubernetes-lab-admin-kubeconfig`
+1. **поднять квоту тенанта** — сейчас `requests.cpu` ограничен 800m, а одному только
+   учебному кластеру нужно больше 1200m. Без этого остальное не имеет смысла;
+2. завести в учебном кластере `ClusterRoleBinding` для группы `kubeadm:cluster-admins` —
+   проверено: `clusterrolebindings "kubeadm:cluster-admins" not found`;
+3. дать учётке участника право читать секрет `kubernetes-lab-admin-kubeconfig`
    (или убрать этот способ из README, оставив только дашборд);
-2. завести в учебном кластере `ClusterRoleBinding` для группы `kubeadm:cluster-admins`;
-3. положить на виртуалку `labs/`, файл `~/.kube/workshop` и недостающие инструменты
+4. положить на виртуалку `labs/`, файл `~/.kube/workshop` и недостающие инструменты
    (`helm`, `flux`, `psql`, `mongosh`, `clickhouse-client`) — либо дать `sudo`
    и доступ в интернет, чтобы участник ставил их сам.
