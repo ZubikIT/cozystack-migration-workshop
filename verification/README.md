@@ -111,4 +111,46 @@ https://s3.workshop.aenix.io     403   (то есть достижим)
 | Кластер виден в дашборде | да, скриншоты в [`screenshots/`](screenshots/) |
 | `lab.kubeconfig` | **не получен** — см. пункт 1 |
 
-Лабы 01–14 без `lab.kubeconfig` не запускаются, поэтому дальше прогон остановлен.
+### 5. `admin.conf` учебного кластера не даёт никаких прав
+
+Кубконфиг из дашборда работает — кластер узнаёт пользователя. Но прав у него нет:
+
+```
+$ export KUBECONFIG=~/lab.kubeconfig
+$ kubectl get nodes
+Error from server (Forbidden): nodes is forbidden: User "kubernetes-admin"
+cannot list resource "nodes" in API group "" at the cluster scope
+$ kubectl auth can-i --list
+selfsubjectreviews.authentication.k8s.io   [create]
+selfsubjectaccessreviews...                [create]
+                              [/healthz]   [get]
+```
+
+Сертификат внутри файла:
+
+```
+subject = O = kubeadm:cluster-admins, CN = kubernetes-admin
+issuer  = CN = kubernetes
+```
+
+В kubeadm-кластерах группа `kubeadm:cluster-admins` получает права через
+`ClusterRoleBinding` с тем же именем. Похоже, в учебном кластере этой привязки нет —
+поэтому «админский» кубконфиг оказывается пустым. Рядом в секрете лежит
+`super-admin.conf` с `O = system:masters`: эта группа RBAC не спрашивает и работать
+будет, но README справедливо называет её средством для разбора аварий, а не рабочим
+доступом.
+
+**Следствие:** участник, дойдя до конца лабы 00 ровно по инструкции, получает файл,
+которым нельзя сделать ни одной команды из лаб 01–14.
+
+## Итог
+
+Прогон остановлен на лабе 00. Причина не в текстах: тексты описывают стенд, который
+под лабы не готовили. Чтобы лабы стали проходимыми, нужно на стороне стенда:
+
+1. дать учётке участника право читать секрет `kubernetes-lab-admin-kubeconfig`
+   (или убрать этот способ из README, оставив только дашборд);
+2. завести в учебном кластере `ClusterRoleBinding` для группы `kubeadm:cluster-admins`;
+3. положить на виртуалку `labs/`, файл `~/.kube/workshop` и недостающие инструменты
+   (`helm`, `flux`, `psql`, `mongosh`, `clickhouse-client`) — либо дать `sudo`
+   и доступ в интернет, чтобы участник ставил их сам.

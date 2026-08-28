@@ -42,3 +42,60 @@ No resources found in tenant-workshop80 namespace.
 ---
 Error from server (Forbidden): persistentvolumeclaims is forbidden: User "system:serviceaccount:tenant-workshop80:workshop80" cannot list resource "persistentvolumeclaims" in API group "" in the namespace "tenant-workshop80"
 
+$ ls -la ~/lab.kubeconfig; export KUBECONFIG=~/lab.kubeconfig; kubectl get nodes
+ls: cannot access '/home/workshop80/lab.kubeconfig': No such file or directory
+E0828 09:49:36.805345  113975 memcache.go:265] "Unhandled Error" err="couldn't get current server API group list: the server could not find the requested resource"
+E0828 09:49:36.807356  113975 memcache.go:265] "Unhandled Error" err="couldn't get current server API group list: the server could not find the requested resource"
+E0828 09:49:36.808863  113975 memcache.go:265] "Unhandled Error" err="couldn't get current server API group list: the server could not find the requested resource"
+E0828 09:49:36.810802  113975 memcache.go:265] "Unhandled Error" err="couldn't get current server API group list: the server could not find the requested resource"
+E0828 09:49:36.812171  113975 memcache.go:265] "Unhandled Error" err="couldn't get current server API group list: the server could not find the requested resource"
+Error from server (NotFound): the server could not find the requested resource
+
+$ chmod 600 ~/lab.kubeconfig; export KUBECONFIG=~/lab.kubeconfig; kubectl get nodes; echo ---; kubectl get ns
+Error from server (Forbidden): nodes is forbidden: User "kubernetes-admin" cannot list resource "nodes" in API group "" at the cluster scope
+---
+Error from server (Forbidden): namespaces is forbidden: User "kubernetes-admin" cannot list resource "namespaces" in API group "" at the cluster scope
+
+$ export KUBECONFIG=~/lab.kubeconfig; echo "--- version ---"; kubectl version -o yaml 2>&1 | head -6; echo "--- can-i ---"; kubectl auth can-i --list 2>&1 | head -12; echo "--- pods в default ---"; kubectl get pods
+--- version ---
+clientVersion:
+  buildDate: "2025-12-09T15:06:39Z"
+  compiler: gc
+  gitCommit: df11db1c0f08fab3c0baee1e5ce6efbf816af7f1
+  gitTreeState: clean
+  gitVersion: v1.34.3
+--- can-i ---
+Resources                                       Non-Resource URLs   Resource Names   Verbs
+selfsubjectreviews.authentication.k8s.io        []                  []               [create]
+selfsubjectaccessreviews.authorization.k8s.io   []                  []               [create]
+selfsubjectrulesreviews.authorization.k8s.io    []                  []               [create]
+                                                [/api/*]            []               [get]
+                                                [/api]              []               [get]
+                                                [/apis/*]           []               [get]
+                                                [/apis]             []               [get]
+                                                [/healthz]          []               [get]
+                                                [/healthz]          []               [get]
+                                                [/livez]            []               [get]
+                                                [/livez]            []               [get]
+--- pods в default ---
+Error from server (Forbidden): pods is forbidden: User "kubernetes-admin" cannot list resource "pods" in API group "" in the namespace "default"
+
+$ kubectl get pods -n tenant-workshop80 --no-headers | grep -i "lab"
+kubernetes-lab-7c5b9976b4-s4992                      4/4   Running     0             37m
+kubernetes-lab-cluster-autoscaler-7d8d6c6bbf-5gvhf   1/1   Running     2 (37m ago)   38m
+kubernetes-lab-kccm-6694df85c-trxdr                  1/1   Running     0             38m
+kubernetes-lab-oidc-bootstrap-2pb4x                  0/1   Completed   0             36m
+
+$ command -v openssl >/dev/null && python3 -c "
+import base64,re,subprocess
+s=open(\"/home/workshop80/lab.kubeconfig\").read()
+c=re.search(r\"client-certificate-data: (\S+)\",s).group(1)
+open(\"/tmp/c.pem\",\"wb\").write(base64.b64decode(c))
+print(subprocess.run([\"openssl\",\"x509\",\"-in\",\"/tmp/c.pem\",\"-noout\",\"-subject\",\"-issuer\",\"-dates\"],capture_output=True,text=True).stdout)
+" || echo "openssl нет"
+subject=O = kubeadm:cluster-admins, CN = kubernetes-admin
+issuer=CN = kubernetes
+notBefore=Aug 12 11:29:21 2026 GMT
+notAfter=Aug 12 11:34:21 2027 GMT
+
+
